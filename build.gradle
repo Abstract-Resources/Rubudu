@@ -19,16 +19,16 @@ repositories {
 }
 
 dependencies {
-    compileOnly(libs.annotations.get())
-    implementation libs.gson.get()
     implementation "com.sparkjava:spark-core:2.9.4"
+    implementation libs.gson.get()
     implementation libs.miwiklark.get()
 
-    compileOnly(libs.lombok.get())
-    annotationProcessor(libs.lombok.get())
+    compileOnly libs.annotations.get()
+    compileOnly libs.lombok.get()
+    annotationProcessor libs.lombok.get()
 
-    testCompileOnly(libs.lombok.get())
-    testAnnotationProcessor(libs.lombok.get())
+    testCompileOnly libs.lombok.get()
+    testAnnotationProcessor libs.lombok.get()
 }
 
 tasks {
@@ -43,7 +43,7 @@ tasks {
 
     jar {
         manifest {
-            attributes["Main-Class"] = "it.bitrule.rubudus.Rubudus"
+            attributes["Main-Class"] = "it.bitrule.rubudu.Loader"
         }
     }
 
