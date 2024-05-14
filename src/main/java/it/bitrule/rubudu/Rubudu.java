@@ -76,7 +76,7 @@ public final class Rubudu {
             Spark.post("/players", PlayerRoutes.POST, new ResponseTransformerImpl());
 
             Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
-            Spark.get("/groups/create", GroupRoutes.POST);
+            Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
 
             Spark.get("/server/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
         });
