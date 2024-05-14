@@ -1,6 +1,7 @@
 package it.bitrule.rubudu;
 
 import it.bitrule.miwiklark.common.Miwiklark;
+import it.bitrule.rubudu.registry.GroupRegistry;
 import it.bitrule.rubudu.registry.ProfileRegistry;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.routes.APIKeyInterceptor;
@@ -43,6 +44,7 @@ public final class Rubudu {
         Miwiklark.authMongo(monguri);
 
         ProfileRegistry.getInstance().loadAll();
+        GroupRegistry.getInstance().loadAll();
 
         Spark.port(port);
 
