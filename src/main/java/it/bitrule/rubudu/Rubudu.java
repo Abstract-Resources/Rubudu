@@ -8,6 +8,7 @@ import it.bitrule.rubudu.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.routes.PingRoute;
 import it.bitrule.rubudu.routes.group.GroupRoutes;
 import it.bitrule.rubudu.routes.player.PlayerRoutes;
+import it.bitrule.rubudu.routes.server.ServerRoutes;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,10 +73,12 @@ public final class Rubudu {
 
             // This is the section for Profile routes
             Spark.get("/players", PlayerRoutes.GET, new ResponseTransformerImpl());
-            Spark.post("/players/:xuid", PlayerRoutes.POST, new ResponseTransformerImpl());
+            Spark.post("/players", PlayerRoutes.POST, new ResponseTransformerImpl());
 
-            Spark.get("/groups/", GroupRoutes.GET, new ResponseTransformerImpl());
-            Spark.get("/groups/create/", GroupRoutes.POST);
+            Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
+            Spark.get("/groups/create", GroupRoutes.POST);
+
+            Spark.get("/server/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
         });
     }
 }

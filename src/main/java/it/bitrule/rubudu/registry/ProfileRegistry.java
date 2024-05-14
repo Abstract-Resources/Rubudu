@@ -1,11 +1,13 @@
 package it.bitrule.rubudu.registry;
 
+import com.mongodb.client.model.Filters;
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +25,18 @@ public final class ProfileRegistry {
                 "rubudu",
                 "profiles"
         );
+    }
+
+    public void loadProfileData(@NonNull ProfileData profileData) {
+        if (this.profilesData.containsKey(profileData.getIdentifier())) return;
+
+        String currentName = profileData.getName();
+        if (currentName == null) {
+            throw new IllegalArgumentException("ProfileData name cannot be null");
+        }
+
+        this.profilesData.put(profileData.getIdentifier(), profileData);
+        this.profilesXuid.put(currentName.toLowerCase(), profileData.getIdentifier());
     }
 
     /**
@@ -61,6 +75,11 @@ public final class ProfileRegistry {
     public @Nullable ProfileData fetchUnsafeByName(@NonNull String name) {
         return Optional.ofNullable(this.profilesXuid.get(name.toLowerCase()))
                 .map(this::fetchUnsafe)
+                .or(() -> Miwiklark.getRepository(ProfileData.class).findBy(Filters.eq("name", name)))
                 .orElse(null);
+    }
+
+    public @NonNull Collection<ProfileData> getProfilesData() {
+        return this.profilesData.values();
     }
 }

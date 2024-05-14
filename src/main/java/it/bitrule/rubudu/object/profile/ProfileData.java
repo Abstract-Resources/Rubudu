@@ -26,6 +26,6 @@ public final class ProfileData implements IModel {
     private final @NonNull String firstJoinDate;
     @SerializedName("last_join_date")
     private @NonNull String lastJoinDate;
-    @SerializedName("last_server_name")
-    private @NonNull String lastServerName;
+    @SerializedName("last_known_server")
+    private @NonNull String lastKnownServer;
 }

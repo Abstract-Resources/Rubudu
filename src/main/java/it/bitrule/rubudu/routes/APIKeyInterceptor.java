@@ -14,8 +14,6 @@ public final class APIKeyInterceptor implements Filter {
     public void handle(Request request, Response response) throws Exception {
         response.type("application/json");
 
-        System.out.println("Handling!");
-
         String apiKey = request.headers("X-API-KEY");
         if (apiKey == null || apiKey.isEmpty()) {
             Rubudu.logger.log(Level.FINER, "API key is required");

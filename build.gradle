@@ -20,8 +20,9 @@ repositories {
 
 dependencies {
     implementation "com.sparkjava:spark-core:2.9.4"
-    implementation libs.gson.get()
     implementation libs.miwiklark.get()
+    implementation libs.mongodb.get()
+    compileOnly libs.gson.get()
 
     compileOnly libs.annotations.get()
     compileOnly libs.lombok.get()
