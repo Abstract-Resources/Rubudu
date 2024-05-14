@@ -23,6 +23,8 @@ public final class Rubudu {
 
     public final static @NonNull Logger logger = Logger.getLogger(Rubudu.class.getName());
 
+    private boolean running = false;
+
     private @Nullable String apiKey;
     private int port = -1;
 
@@ -36,7 +38,7 @@ public final class Rubudu {
 
         logger.log(Level.INFO, "Loaded Rubudu with api-key {0} and port {1}", new Object[]{apiKey, port});
 
-        String monguri = System.getenv("MONGODB_URI");
+        String monguri = "mongodb://hyrium_database:5vXHTO256DIkwJZ@127.0.0.1:27017/";
         if (monguri == null || monguri.isEmpty()) {
             throw new IllegalStateException("MONGODB_URI environment variable not set");
         }
@@ -46,18 +48,31 @@ public final class Rubudu {
         ProfileRegistry.getInstance().loadAll();
         GroupRegistry.getInstance().loadAll();
 
-        Spark.port(port);
+        Spark.port(3000);
+        Spark.init();
 
         logger.log(Level.INFO, "Spark listening on port {0}", port);
 
-        Spark.path("/api", () -> {
-            Spark.before("/*", new APIKeyInterceptor());
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.log(Level.INFO, "Shutting down Rubudu");
 
+            if (!Rubudu.this.running) return;
+
+            Rubudu.this.running = false;
+
+            Spark.awaitStop();
+        }));
+
+        this.running = true;
+
+        Spark.before("/*", new APIKeyInterceptor());
+
+        Spark.path("/api", () -> {
             Spark.get("/ping", new PingRoute(), new ResponseTransformerImpl());
 
             // This is the section for Profile routes
-            Spark.get("/player", PlayerRoutes.GET, new ResponseTransformerImpl());
-            Spark.post("/player", PlayerRoutes.POST, new ResponseTransformerImpl());
+            Spark.get("/players", PlayerRoutes.GET, new ResponseTransformerImpl());
+            Spark.post("/players/:xuid", PlayerRoutes.POST, new ResponseTransformerImpl());
 
             Spark.get("/groups/", GroupRoutes.GET, new ResponseTransformerImpl());
             Spark.get("/groups/create/", GroupRoutes.POST);

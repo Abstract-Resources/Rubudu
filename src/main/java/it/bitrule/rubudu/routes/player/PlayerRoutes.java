@@ -13,8 +13,8 @@ import java.util.Objects;
 public final class PlayerRoutes {
 
     public final static @NonNull Route GET = (request, response) -> {
-        String xuid = request.queryParams(":xuid");
-        String name = request.queryParams(":name");
+        String xuid = request.queryParams("xuid");
+        String name = request.queryParams("name");
 
         boolean xuidEmpty = xuid == null || xuid.isEmpty();
         if (xuidEmpty && (name == null || name.isEmpty())) {
@@ -32,7 +32,7 @@ public final class PlayerRoutes {
     };
 
     public final static @NonNull Route POST = (request, response) -> {
-        String xuid = request.queryParams(":xuid");
+        String xuid = request.params(":xuid");
         if (xuid == null || xuid.isEmpty()) {
             Spark.halt(400, "XUID is required");
         }

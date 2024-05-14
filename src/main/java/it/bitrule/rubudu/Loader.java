@@ -17,6 +17,11 @@ public final class Loader {
             System.exit(1);
         }
 
-        Rubudu.getInstance().loadAll(apiKey, port);
+        try {
+            Rubudu.getInstance().loadAll(apiKey, port);
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            System.exit(1);
+        }
     }
 }
