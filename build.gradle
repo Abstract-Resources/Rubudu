@@ -1,0 +1,71 @@
+import it.bitrule.plorex.script.ASpotlessPlugin
+import it.bitrule.plorex.script.CommonPlugin
+import it.bitrule.plorex.script.PublishPlugin
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'idea'
+    alias libs.plugins.shadow
+    alias libs.plugins.nukkitPluginYAML
+}
+
+apply plugin: "java"
+apply plugin: ASpotlessPlugin
+apply plugin: PublishPlugin
+apply plugin: CommonPlugin
+
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    compileOnly(libs.annotations.get())
+
+    compileOnly(libs.lombok.get())
+    annotationProcessor(libs.lombok.get())
+
+    testCompileOnly(libs.lombok.get())
+    testAnnotationProcessor(libs.lombok.get())
+}
+
+tasks {
+    build {
+        dependsOn spotlessApply
+        dependsOn shadowJar
+    }
+
+    shadowJar {
+        archiveFileName.set("${rootProject.name}-${version}.jar")
+    }
+
+    compileJava {
+        options.encoding = "UTF-8"
+        options.compilerArgs.add("-Xpkginfo:always")
+    }
+}
+
+//Automatically download dependencies source code
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = false
+    }
+}
+
+tasks.withType(AbstractCopyTask).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+java {
+    withSourcesJar()
+}
+
+nukkit {
+    main = "it.bitrule.phoenix.Phoenix"
+    api = ["1.0.0"]
+    version = "${project.version}"
+    authors = ["bitrule"]
+    description = "${findProperty("plugin-description")}"
+    name = "${findProperty("plugin-name")}"
+}
