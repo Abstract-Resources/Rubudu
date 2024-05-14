@@ -2,6 +2,7 @@ package it.bitrule.rubudu.routes.player;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.Rubudu;
+import it.bitrule.rubudu.api.Pong;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import it.bitrule.rubudu.object.profile.ProfilePostData;
 import it.bitrule.rubudu.registry.ProfileRegistry;
@@ -109,6 +110,6 @@ public final class PlayerRoutes {
 
         Rubudu.logger.log(Level.INFO, "Updated profile data for {0}", profileData.getName());
 
-        return profileData;
+        return new Pong();
     };
 }

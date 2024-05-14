@@ -9,6 +9,8 @@ import lombok.NonNull;
 import spark.Route;
 import spark.Spark;
 
+import java.util.concurrent.CompletableFuture;
+
 public final class GroupRoutes {
 
     public final static @NonNull Route GET = (request, response) -> GroupRegistry.getInstance().getGroups();
@@ -21,17 +23,17 @@ public final class GroupRoutes {
 
         GroupData groupData = GroupRegistry.getInstance().getGroup(groupPostData.getId());
         if (groupData == null) {
-            groupData = new GroupData(groupPostData.getId(), groupPostData.getName());
-            groupData.setPriority(groupPostData.getPriority());
-            groupData.setDisplay(groupPostData.getDisplay());
-            groupData.setPrefix(groupPostData.getPrefix());
-            groupData.setSuffix(groupPostData.getSuffix());
-            groupData.setColor(groupPostData.getColor());
-
-            GroupRegistry.getInstance().addGroup(groupData);
+            GroupRegistry.getInstance().addGroup(groupData = new GroupData(groupPostData.getId(), groupPostData.getName()));
         }
 
-        Miwiklark.getRepository(GroupData.class).save(groupData);
+        groupData.setPriority(groupPostData.getPriority());
+        groupData.setDisplay(groupPostData.getDisplay());
+        groupData.setPrefix(groupPostData.getPrefix());
+        groupData.setSuffix(groupPostData.getSuffix());
+        groupData.setColor(groupPostData.getColor());
+
+        GroupData finalGroupData = groupData;
+        CompletableFuture.runAsync(() -> Miwiklark.getRepository(GroupData.class).save(finalGroupData));
 
         return new Pong();
     };
