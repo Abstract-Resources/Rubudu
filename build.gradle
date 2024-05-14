@@ -7,7 +7,6 @@ plugins {
     id 'maven-publish'
     id 'idea'
     alias libs.plugins.shadow
-    alias libs.plugins.nukkitPluginYAML
 }
 
 apply plugin: "java"
@@ -21,6 +20,9 @@ repositories {
 
 dependencies {
     compileOnly(libs.annotations.get())
+    implementation libs.gson.get()
+    implementation "com.sparkjava:spark-core:2.9.4"
+    implementation libs.miwiklark.get()
 
     compileOnly(libs.lombok.get())
     annotationProcessor(libs.lombok.get())
@@ -37,6 +39,12 @@ tasks {
 
     shadowJar {
         archiveFileName.set("${rootProject.name}-${version}.jar")
+    }
+
+    jar {
+        manifest {
+            attributes["Main-Class"] = "it.bitrule.rubudus.Rubudus"
+        }
     }
 
     compileJava {
@@ -59,13 +67,4 @@ tasks.withType(AbstractCopyTask).configureEach {
 
 java {
     withSourcesJar()
-}
-
-nukkit {
-    main = "it.bitrule.phoenix.Phoenix"
-    api = ["1.0.0"]
-    version = "${project.version}"
-    authors = ["bitrule"]
-    description = "${findProperty("plugin-description")}"
-    name = "${findProperty("plugin-name")}"
 }
