@@ -7,6 +7,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RequiredArgsConstructor @Data
 public final class GrantData implements IModel {
 
@@ -26,6 +29,13 @@ public final class GrantData implements IModel {
     private @Nullable String revokedAt;
     @SerializedName("who_revoked")
     private @Nullable String whoRevoked;
+    /**
+     * The scopes of the grant
+     * If the scope starts with 'g=' then it's a group scope
+     * If the scope starts with 's=' then it's a server scope
+     * Empty scopes mean the grant is global
+     */
+    private @NonNull List<String> scopes = new ArrayList<>();
 
     /**
      * Check if the grant is expired
