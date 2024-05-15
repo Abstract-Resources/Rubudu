@@ -1,11 +1,13 @@
 package it.bitrule.rubudu;
 
 import it.bitrule.miwiklark.common.Miwiklark;
+import it.bitrule.rubudu.registry.GrantRegistry;
 import it.bitrule.rubudu.registry.GroupRegistry;
 import it.bitrule.rubudu.registry.ProfileRegistry;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.routes.PingRoute;
+import it.bitrule.rubudu.routes.group.GrantRoutes;
 import it.bitrule.rubudu.routes.group.GroupRoutes;
 import it.bitrule.rubudu.routes.player.PlayerRoutes;
 import it.bitrule.rubudu.routes.server.ServerRoutes;
@@ -48,11 +50,30 @@ public final class Rubudu {
 
         ProfileRegistry.getInstance().loadAll();
         GroupRegistry.getInstance().loadAll();
+        GrantRegistry.getInstance().loadAll();
 
         Spark.port(3000);
         Spark.init();
 
         logger.log(Level.INFO, "Spark listening on port {0}", port);
+
+        Spark.before("/*", new APIKeyInterceptor());
+
+        Spark.path("/api", () -> {
+            Spark.get("/ping", new PingRoute(), new ResponseTransformerImpl());
+
+            // This is the section for Profile routes
+            Spark.post("/players", PlayerRoutes.POST, new ResponseTransformerImpl());
+            Spark.get("/players", PlayerRoutes.GET, new ResponseTransformerImpl());
+
+            Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
+            Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
+
+            Spark.post("/grants", GrantRoutes.POST, new ResponseTransformerImpl());
+            Spark.get("/grants", GrantRoutes.GET, new ResponseTransformerImpl());
+
+            Spark.get("/server/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
+        });
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.log(Level.INFO, "Shutting down Rubudu");
@@ -65,20 +86,5 @@ public final class Rubudu {
         }));
 
         this.running = true;
-
-        Spark.before("/*", new APIKeyInterceptor());
-
-        Spark.path("/api", () -> {
-            Spark.get("/ping", new PingRoute(), new ResponseTransformerImpl());
-
-            // This is the section for Profile routes
-            Spark.get("/players", PlayerRoutes.GET, new ResponseTransformerImpl());
-            Spark.post("/players", PlayerRoutes.POST, new ResponseTransformerImpl());
-
-            Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
-            Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
-
-            Spark.get("/server/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
-        });
     }
 }

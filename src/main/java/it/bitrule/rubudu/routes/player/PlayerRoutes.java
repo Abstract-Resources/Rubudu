@@ -16,8 +16,8 @@ import java.util.logging.Level;
 
 public final class PlayerRoutes {
 
-    private final static @NonNull String STATE_ONLINE = "online";
-    private final static @NonNull String STATE_OFFLINE = "offline";
+    public final static @NonNull String STATE_ONLINE = "online";
+    public final static @NonNull String STATE_OFFLINE = "offline";
 
     public final static @NonNull Route GET = (request, response) -> {
         String xuid = request.queryParams("xuid");
