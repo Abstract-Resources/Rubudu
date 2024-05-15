@@ -63,12 +63,14 @@ public final class Rubudu {
             Spark.get("/ping", new PingRoute(), new ResponseTransformerImpl());
 
             // This is the section for Profile routes
+            Spark.post("/players/:xuid", PlayerRoutes.POST_UNLOAD, new ResponseTransformerImpl());
             Spark.post("/players", PlayerRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/players", PlayerRoutes.GET, new ResponseTransformerImpl());
 
             Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
 
+            Spark.post("/grants/:xuid", GrantRoutes.POST_UNLOAD, new ResponseTransformerImpl());
             Spark.post("/grants", GrantRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/grants", GrantRoutes.GET, new ResponseTransformerImpl());
 
@@ -81,6 +83,12 @@ public final class Rubudu {
             if (!Rubudu.this.running) return;
 
             Rubudu.this.running = false;
+
+            if (Loader.timer != null) {
+                Loader.timer.cancel();
+
+                logger.log(Level.INFO, "Timer cancelled");
+            }
 
             Spark.awaitStop();
         }));

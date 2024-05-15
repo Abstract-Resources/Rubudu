@@ -112,4 +112,15 @@ public final class PlayerRoutes {
 
         return new Pong();
     };
+
+    public final static @NonNull Route POST_UNLOAD = (request, response) -> {
+        String xuid = request.params(":xuid");
+        if (xuid == null || xuid.isEmpty()) {
+            Spark.halt(400, "XUID is required");
+        }
+
+        ProfileRegistry.getInstance().unloadProfile(xuid);
+
+        return new Pong();
+    };
 }

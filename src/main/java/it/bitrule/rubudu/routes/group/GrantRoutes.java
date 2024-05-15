@@ -99,4 +99,15 @@ public final class GrantRoutes {
 
         return new Pong();
     };
+
+    public final static @NonNull Route POST_UNLOAD = (request, response) -> {
+        String xuid = request.params(":xuid");
+        if (xuid == null || xuid.isEmpty()) {
+            Spark.halt(400, "XUID is required");
+        }
+
+        GrantRegistry.getInstance().unloadPlayerGrants(xuid);
+
+        return new Pong();
+    };
 }

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -18,6 +19,10 @@ public final class ProfileRegistry {
 
     private final @NonNull Map<String, ProfileData> profilesData = new ConcurrentHashMap<>();
     private final @NonNull Map<String, String> profilesXuid = new ConcurrentHashMap<>();
+    /**
+     * The pending unloads for the profile
+     */
+    private final @NonNull Map<String, Instant> pendingUnloads = new ConcurrentHashMap<>();
 
     public void loadAll() {
         Miwiklark.addRepository(
@@ -27,7 +32,29 @@ public final class ProfileRegistry {
         );
     }
 
+    /**
+     * Unload the profile for the given xuid
+     * After the given time, the profile will be removed from the cache
+     */
+    public void tick() {
+        for (Map.Entry<String, Instant> entry : this.pendingUnloads.entrySet()) {
+            if (entry.getValue().isAfter(Instant.now())) continue;
+
+            this.profilesXuid.remove(entry.getKey());
+            this.profilesData.remove(entry.getKey());
+            this.pendingUnloads.remove(entry.getKey());
+        }
+    }
+
+    /**
+     * Load the given ProfileData into the cache
+     * And remove it from the pending unloads
+     *
+     * @param profileData The ProfileData to load
+     */
     public void loadProfileData(@NonNull ProfileData profileData) {
+        this.pendingUnloads.remove(profileData.getIdentifier());
+
         if (this.profilesData.containsKey(profileData.getIdentifier())) return;
 
         String currentName = profileData.getName();
@@ -37,6 +64,14 @@ public final class ProfileRegistry {
 
         this.profilesData.put(profileData.getIdentifier(), profileData);
         this.profilesXuid.put(currentName.toLowerCase(), profileData.getIdentifier());
+    }
+
+    /**
+     * Add time to the pending unload of the given xuid
+     * @param xuid The xuid of the player
+     */
+    public void unloadProfile(@NonNull String xuid) {
+        this.pendingUnloads.put(xuid, Instant.now().plusSeconds(120));
     }
 
     /**

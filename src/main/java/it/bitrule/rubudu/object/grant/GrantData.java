@@ -2,6 +2,7 @@ package it.bitrule.rubudu.object.grant;
 
 import com.google.gson.annotations.SerializedName;
 import it.bitrule.miwiklark.common.repository.model.IModel;
+import it.bitrule.rubudu.utils.JavaUtils;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,10 @@ public final class GrantData implements IModel {
      * @return True if the grant is expired, false otherwise
      */
     public boolean isExpired() {
-        // TODO: Fix this because it's not working
-        return this.expiresAt != null && System.currentTimeMillis() > Long.parseLong(this.expiresAt);
+        if (this.revokedAt != null || this.whoRevoked != null) return true;
+        if (this.expiresAt == null) return false;
+
+        long timestamp = JavaUtils.parseDate(this.expiresAt);
+        return timestamp == -1 || System.currentTimeMillis() > timestamp;
     }
 }

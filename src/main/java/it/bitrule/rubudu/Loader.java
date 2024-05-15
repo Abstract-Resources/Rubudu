@@ -1,8 +1,15 @@
 package it.bitrule.rubudu;
 
+import it.bitrule.rubudu.registry.GrantRegistry;
 import it.bitrule.rubudu.utils.JavaUtils;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public final class Loader {
+
+    static @Nullable Timer timer = null;
 
     public static void main(String[] args) {
         if (args.length != 2) {
@@ -19,9 +26,19 @@ public final class Loader {
 
         try {
             Rubudu.getInstance().loadAll(apiKey, port);
+
+            timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTaskImpl(), 1000L, 1000L);
         } catch (Exception e) {
             e.printStackTrace(System.err);
             System.exit(1);
+        }
+    }
+
+    private static class TimerTaskImpl extends TimerTask {
+        @Override
+        public void run() {
+            GrantRegistry.getInstance().tick();
         }
     }
 }

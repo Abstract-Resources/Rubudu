@@ -7,17 +7,22 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class GrantRegistry {
 
     @Getter private static final GrantRegistry instance = new GrantRegistry();
 
+    /**
+     * The grants for the players
+     */
     private final @NonNull Map<String, List<GrantData>> playerGrants = new ConcurrentHashMap<>();
+    /**
+     * The pending unloads for the grants
+     */
+    private final @NonNull Map<String, Instant> pendingUnloads = new ConcurrentHashMap<>();
 
     public void loadAll() {
         Miwiklark.addRepository(
@@ -28,15 +33,39 @@ public final class GrantRegistry {
     }
 
     /**
-     * Get the grants for the given xuid
+     * Unload the grants for the given xuid
+     * After the given time, the grants will be removed from the cache
+     */
+    public void tick() {
+        for (Map.Entry<String, Instant> entry : this.pendingUnloads.entrySet()) {
+            if (entry.getValue().isAfter(Instant.now())) continue;
+
+            this.playerGrants.remove(entry.getKey());
+            this.pendingUnloads.remove(entry.getKey());
+        }
+    }
+
+    /**
+     * Set the grants for the given xuid
+     * And remove it from the pending unloads
      *
      * @param xuid The xuid of the player
      * @param grants The grants for the given xuid
      */
     public void setPlayerGrants(@NonNull String xuid, @NonNull List<GrantData> grants) {
+        this.pendingUnloads.remove(xuid);
+
         if (this.playerGrants.containsKey(xuid)) return;
 
         this.playerGrants.put(xuid, grants);
+    }
+
+    /**
+     * Add time to the pending unload of the given xuid
+     * @param xuid The xuid of the player
+     */
+    public void unloadPlayerGrants(@NonNull String xuid) {
+        this.pendingUnloads.put(xuid, Instant.now().plusSeconds(120));
     }
 
     /**
