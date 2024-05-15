@@ -70,7 +70,7 @@ public final class Rubudu {
             Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
 
-            Spark.post("/grants/:xuid", GrantRoutes.POST_UNLOAD, new ResponseTransformerImpl());
+            Spark.post("/grants/unload", GrantRoutes.POST_UNLOAD, new ResponseTransformerImpl());
             Spark.post("/grants", GrantRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/grants", GrantRoutes.GET, new ResponseTransformerImpl());
 

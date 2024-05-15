@@ -20,6 +20,10 @@ public final class GrantRegistry {
      */
     private final @NonNull Map<String, List<GrantData>> playerGrants = new ConcurrentHashMap<>();
     /**
+     * The last fetch for the grants
+     */
+    private final @NonNull Map<String, Instant> lastFetch = new ConcurrentHashMap<>();
+    /**
      * The pending unloads for the grants
      */
     private final @NonNull Map<String, Instant> pendingUnloads = new ConcurrentHashMap<>();
@@ -42,6 +46,7 @@ public final class GrantRegistry {
 
             this.playerGrants.remove(entry.getKey());
             this.pendingUnloads.remove(entry.getKey());
+            this.lastFetch.remove(entry.getKey());
         }
     }
 
@@ -54,6 +59,8 @@ public final class GrantRegistry {
      */
     public void setPlayerGrants(@NonNull String xuid, @NonNull List<GrantData> grants) {
         this.pendingUnloads.remove(xuid);
+
+        this.lastFetch.put(xuid, Instant.now());
 
         if (this.playerGrants.containsKey(xuid)) return;
 
@@ -91,5 +98,14 @@ public final class GrantRegistry {
         return Optional.ofNullable(this.playerGrants.get(xuid))
                 .or(() -> Optional.of(Miwiklark.getRepository(GrantData.class).findMany(Filters.eq("source_xuid", xuid))))
                 .orElse(new ArrayList<>());
+    }
+
+    /**
+     * Get the last fetch for the given xuid
+     * @param xuid The xuid of the player
+     * @return The last fetch for the given xuid
+     */
+    public @Nullable Instant getLastFetchTimestamp(@NonNull String xuid) {
+        return this.lastFetch.get(xuid);
     }
 }

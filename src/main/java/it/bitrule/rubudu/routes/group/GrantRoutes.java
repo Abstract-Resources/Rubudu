@@ -4,14 +4,17 @@ import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.api.Pong;
 import it.bitrule.rubudu.object.grant.GrantData;
+import it.bitrule.rubudu.object.grant.GrantPostUnloadData;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import it.bitrule.rubudu.registry.GrantRegistry;
 import it.bitrule.rubudu.registry.ProfileRegistry;
 import it.bitrule.rubudu.routes.player.PlayerRoutes;
+import it.bitrule.rubudu.utils.JavaUtils;
 import lombok.NonNull;
 import spark.Route;
 import spark.Spark;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -101,12 +104,22 @@ public final class GrantRoutes {
     };
 
     public final static @NonNull Route POST_UNLOAD = (request, response) -> {
-        String xuid = request.params(":xuid");
-        if (xuid == null || xuid.isEmpty()) {
-            Spark.halt(400, "XUID is required");
+        GrantPostUnloadData grantPostUnloadData = Miwiklark.GSON.fromJson(request.body(), GrantPostUnloadData.class);
+        if (grantPostUnloadData == null) {
+            Spark.halt(400, "Invalid body");
         }
 
-        GrantRegistry.getInstance().unloadPlayerGrants(xuid);
+        long timestampLong = JavaUtils.parseDate(grantPostUnloadData.getTimestamp());
+        if (timestampLong == -1) {
+            Spark.halt(400, "Invalid timestamp");
+        }
+
+        Instant lastFetch = GrantRegistry.getInstance().getLastFetchTimestamp(grantPostUnloadData.getXuid());
+        if (lastFetch != null && lastFetch.toEpochMilli() > timestampLong) {
+            Spark.halt(502, "Timestamp is older than the last fetch"); // 502 = STATUS_CODE_BAD_GATEWAY
+        }
+
+        GrantRegistry.getInstance().unloadPlayerGrants(grantPostUnloadData.getXuid());
 
         return new Pong();
     };
