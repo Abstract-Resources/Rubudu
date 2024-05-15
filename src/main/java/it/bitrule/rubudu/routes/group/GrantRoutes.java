@@ -5,6 +5,7 @@ import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.api.Pong;
 import it.bitrule.rubudu.object.grant.GrantData;
 import it.bitrule.rubudu.object.grant.GrantPostUnloadData;
+import it.bitrule.rubudu.object.grant.GrantsResponseData;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import it.bitrule.rubudu.registry.GrantRegistry;
 import it.bitrule.rubudu.registry.ProfileRegistry;
@@ -44,14 +45,25 @@ public final class GrantRoutes {
             xuid = profileData.getIdentifier();
         }
 
-        List<GrantData> grantData = GrantRegistry.getInstance().fetchUnsafePlayerGrants(xuid);
+        List<GrantData> grantsData = GrantRegistry.getInstance().fetchUnsafePlayerGrants(xuid);
         if (state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)) {
-            GrantRegistry.getInstance().setPlayerGrants(xuid, grantData);
+            GrantRegistry.getInstance().setPlayerGrants(xuid, grantsData);
 
             Rubudu.logger.log(Level.INFO, "Grants has been cached into our cache for {0}", xuid);
         }
 
-        return grantData;
+        return new GrantsResponseData(
+                xuid,
+                grantsData.stream()
+                        .filter(grantData -> !grantData.isExpired())
+                        .toList(),
+                grantsData.stream()
+                        .filter(GrantData::isExpired)
+                        .toList(),
+                GrantRegistry.getInstance().getLastFetchTimestamp(xuid) != null || state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)
+                        ? PlayerRoutes.STATE_ONLINE
+                        : PlayerRoutes.STATE_OFFLINE
+        );
     };
 
     /**
@@ -87,16 +99,12 @@ public final class GrantRoutes {
         }
 
         if (state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)) {
+            // TODO: Remove the old grant if it exists
+            grantsData.removeIf(grantData -> grantData.getIdentifier().equals(grantPostData.getIdentifier()));
+            grantsData.add(grantPostData);
+
             GrantRegistry.getInstance().setPlayerGrants(grantPostData.getSourceXuid(), grantsData);
         }
-
-        for (GrantData grantData : grantsData) {
-            if (grantData.isExpired() || !grantData.getGroupId().equalsIgnoreCase(grantPostData.getGroupId())) continue;
-
-            Spark.halt(400, "Player already has a grant for group " + grantPostData.getGroupId());
-        }
-
-        grantsData.add(grantPostData);
 
         Miwiklark.getRepository(GrantData.class).save(grantPostData);
 
