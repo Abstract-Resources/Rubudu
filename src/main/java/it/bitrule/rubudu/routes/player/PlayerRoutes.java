@@ -178,7 +178,7 @@ public final class PlayerRoutes {
         if (prefix == null) prefix = "&7";
 
         Rubudu.getPublisherRepository().publish(
-                PlayerJoinedNetworkPacket.create(prefix + profileData.getName(), serverId, lastKnownServer),
+                PlayerJoinedNetworkPacket.create(prefix.replace("§", "&") + profileData.getName(), serverId, lastKnownServer),
                 true
         );
 
