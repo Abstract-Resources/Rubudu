@@ -12,6 +12,7 @@ import it.bitrule.rubudu.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.routes.PingRoute;
 import it.bitrule.rubudu.routes.group.GrantRoutes;
 import it.bitrule.rubudu.routes.group.GroupRoutes;
+import it.bitrule.rubudu.routes.party.PartyRoutes;
 import it.bitrule.rubudu.routes.player.PlayerRoutes;
 import it.bitrule.rubudu.routes.server.ServerRoutes;
 import lombok.Getter;
@@ -95,6 +96,10 @@ public final class Rubudu {
             Spark.post("/player/joined", PlayerRoutes.POST_JOINED, new ResponseTransformerImpl());
             Spark.post("/player", PlayerRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/player", PlayerRoutes.GET, new ResponseTransformerImpl());
+
+            Spark.post("/parties", PartyRoutes.POST_JOINED, new ResponseTransformerImpl());
+            Spark.get("/parties", PartyRoutes.GET, new ResponseTransformerImpl());
+            Spark.delete("/parties/:id", PartyRoutes.DELETE, new ResponseTransformerImpl());
 
             Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
