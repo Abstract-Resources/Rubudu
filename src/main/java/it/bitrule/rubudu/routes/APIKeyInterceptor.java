@@ -1,6 +1,7 @@
 package it.bitrule.rubudu.routes;
 
 import it.bitrule.rubudu.Rubudu;
+import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
@@ -18,20 +19,20 @@ public final class APIKeyInterceptor implements Filter {
         if (apiKey == null || apiKey.isEmpty()) {
             Rubudu.logger.log(Level.FINER, "API key is required");
 
-            Spark.halt(401, "API key is required");
+            Spark.halt(401, ResponseTransformerImpl.failedResponse("API key is required"));
         }
 
         if (!apiKey.equals(Rubudu.getInstance().getApiKey())) {
             Rubudu.logger.log(Level.FINER, "Unauthorized API key");
 
-            Spark.halt(403, "Unauthorized API key");
+            Spark.halt(403, ResponseTransformerImpl.failedResponse("Unauthorized API key"));
         }
 
         String contentType = request.contentType();
         if (contentType == null || !contentType.equals("application/json")) {
             Rubudu.logger.log(Level.FINER, "Bad request");
 
-            Spark.halt(400, "Bad request");
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("No valid content type"));
         }
 
         Rubudu.logger.log(Level.FINER, "Accepting request from {0} with API key {1}", new Object[]{request.ip(), apiKey});

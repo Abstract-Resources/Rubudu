@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.api;
+package it.bitrule.rubudu.object;
 
 import lombok.NonNull;
 import lombok.ToString;

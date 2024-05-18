@@ -1,7 +1,7 @@
 package it.bitrule.rubudu.routes.group;
 
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.api.Pong;
+import it.bitrule.rubudu.object.Pong;
 import it.bitrule.rubudu.object.group.GroupData;
 import it.bitrule.rubudu.object.group.GroupPostData;
 import it.bitrule.rubudu.registry.GroupRegistry;

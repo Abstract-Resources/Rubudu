@@ -2,10 +2,11 @@ package it.bitrule.rubudu.routes.player;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.Rubudu;
-import it.bitrule.rubudu.api.Pong;
+import it.bitrule.rubudu.object.Pong;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import it.bitrule.rubudu.object.profile.ProfilePostData;
 import it.bitrule.rubudu.registry.ProfileRegistry;
+import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import lombok.NonNull;
 import spark.Route;
 import spark.Spark;
@@ -25,19 +26,19 @@ public final class PlayerRoutes {
 
         boolean xuidEmpty = xuid == null || xuid.isEmpty();
         if (xuidEmpty && (name == null || name.isEmpty())) {
-            Spark.halt(400, "XUID or name is required");
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID or name is required"));
         }
 
         String state = request.queryParams("state");
         if (state == null || state.isEmpty() || (!Objects.equals(state, STATE_ONLINE) && !Objects.equals(state, STATE_OFFLINE))) {
-            Spark.halt(400, "State is required and must be either 'online' or 'offline'");
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("State is required and must be either 'online' or 'offline'"));
         }
 
         ProfileData profileData = xuidEmpty
                 ? ProfileRegistry.getInstance().fetchUnsafeByName(name)
                 : ProfileRegistry.getInstance().fetchUnsafe(xuid);
         if (profileData == null) {
-            Spark.halt(404, "Profile not found");
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
         if (state.equalsIgnoreCase(STATE_ONLINE)) {
@@ -50,38 +51,36 @@ public final class PlayerRoutes {
     };
 
     public final static @NonNull Route POST = (request, response) -> {
-        String force = request.queryParams("force");
-        if (force == null || force.isEmpty()) {
-            Spark.halt(400, "Force is required");
-        }
-
-        boolean forceBool;
-        try {
-            forceBool = Boolean.parseBoolean(force);
-        } catch (Exception e) {
-            Spark.halt(400, "Force must be a boolean");
-            return null;
+        String state = request.queryParams("state");
+        if (state == null || state.isEmpty() || (!Objects.equals(state, STATE_ONLINE) && !Objects.equals(state, STATE_OFFLINE))) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("State is required and must be either 'online' or 'offline'"));
         }
 
         ProfilePostData profilePostData = null;
         try {
             profilePostData = Miwiklark.GSON.fromJson(request.body(), ProfilePostData.class);
-            if (profilePostData == null) {
-                Spark.halt(400, "Invalid body");
-            }
         } catch (Exception e) {
-            Spark.halt(500, "Internal server error");
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid body"));
         }
 
-        ProfileData profileData = forceBool
-                ? ProfileRegistry.getInstance().fetchUnsafe(profilePostData.getXuid())
-                : ProfileRegistry.getInstance().getProfileData(profilePostData.getName());
-        if (profileData == null && forceBool) {
-            profileData = new ProfileData(profilePostData.getXuid(), "", "", "Lobby1");
+        if (profilePostData == null) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid body"));
+        }
+
+        ProfileData profileData = state.equalsIgnoreCase(STATE_ONLINE)
+                ? ProfileRegistry.getInstance().getProfileData(profilePostData.getXuid())
+                : ProfileRegistry.getInstance().fetchUnsafe(profilePostData.getXuid());
+        if (profileData == null && state.equalsIgnoreCase(STATE_ONLINE)) {
+            profileData = new ProfileData(
+                    profilePostData.getXuid(),
+                    profilePostData.getFirstJoinDate(),
+                    profilePostData.getLastJoinDate(),
+                    profilePostData.getLastKnownServer()
+            );
         }
 
         if (profileData == null) {
-            Spark.halt(404, "Profile non loaded");
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
         Rubudu.logger.log(Level.INFO, "Updating profile data for {0}", profileData.getName());
@@ -95,8 +94,7 @@ public final class PlayerRoutes {
             profileData.setName(profilePostData.getName());
         }
 
-        if (forceBool) {
-            System.out.println("Loading profile data for " + profileData.getName());
+        if (state.equalsIgnoreCase(STATE_ONLINE)) {
             ProfileRegistry.getInstance().loadProfileData(profileData);
             Rubudu.logger.log(Level.INFO, "Forced profile data load for {0}", profileData.getName());
         }
@@ -116,7 +114,7 @@ public final class PlayerRoutes {
     public final static @NonNull Route POST_UNLOAD = (request, response) -> {
         String xuid = request.params(":xuid");
         if (xuid == null || xuid.isEmpty()) {
-            Spark.halt(400, "XUID is required");
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
         ProfileRegistry.getInstance().unloadProfile(xuid);
