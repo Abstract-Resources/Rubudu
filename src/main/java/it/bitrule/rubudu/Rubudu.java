@@ -4,6 +4,9 @@ import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.registry.GrantRegistry;
 import it.bitrule.rubudu.registry.GroupRegistry;
 import it.bitrule.rubudu.registry.ProfileRegistry;
+import it.bitrule.rubudu.repository.PublisherRepository;
+import it.bitrule.rubudu.repository.RedisRepository;
+import it.bitrule.rubudu.repository.connection.RedisConnection;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.routes.PingRoute;
@@ -24,11 +27,27 @@ public final class Rubudu {
 
     @Getter private final static @NonNull Rubudu instance = new Rubudu();
 
+    /**
+     * Logger for Rubudu
+     */
     public final static @NonNull Logger logger = Logger.getLogger(Rubudu.class.getName());
+    /**
+     * The publisher repository
+     */
+    private static @Nullable PublisherRepository publisherRepository = null;
 
+    /**
+     * This variable is used to check if the Rubudu instance is running
+     */
     private boolean running = false;
 
+    /**
+     * The API key for Rubudu
+     */
     private @Nullable String apiKey;
+    /**
+     * The port for Rubudu
+     */
     private int port = -1;
 
     public void loadAll(@NonNull String apiKey, int port) {
@@ -48,6 +67,15 @@ public final class Rubudu {
 
         Miwiklark.authMongo(monguri);
 
+        RedisConnection redisConnection = new RedisConnection("127.0.0.1", null, 0);
+        redisConnection.connect();
+
+        publisherRepository = new PublisherRepository(
+                new RedisRepository(redisConnection),
+                "rubudu"
+        );
+        publisherRepository.start();
+
         ProfileRegistry.getInstance().loadAll();
         GroupRegistry.getInstance().loadAll();
         GrantRegistry.getInstance().loadAll();
@@ -63,9 +91,10 @@ public final class Rubudu {
             Spark.get("/ping", new PingRoute(), new ResponseTransformerImpl());
 
             // This is the section for Profile routes
-            Spark.post("/players/:xuid", PlayerRoutes.POST_UNLOAD, new ResponseTransformerImpl());
-            Spark.post("/players", PlayerRoutes.POST, new ResponseTransformerImpl());
-            Spark.get("/players", PlayerRoutes.GET, new ResponseTransformerImpl());
+            Spark.post("/player/unload/:xuid", PlayerRoutes.POST_UNLOAD, new ResponseTransformerImpl());
+            Spark.post("/player/joined", PlayerRoutes.POST_JOINED, new ResponseTransformerImpl());
+            Spark.post("/player", PlayerRoutes.POST, new ResponseTransformerImpl());
+            Spark.get("/player", PlayerRoutes.GET, new ResponseTransformerImpl());
 
             Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
@@ -94,5 +123,13 @@ public final class Rubudu {
         }));
 
         this.running = true;
+    }
+
+    public static @NonNull PublisherRepository getPublisherRepository() {
+        if (publisherRepository == null) {
+            throw new IllegalStateException("PublisherRepository not initialized");
+        }
+
+        return publisherRepository;
     }
 }

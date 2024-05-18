@@ -3,14 +3,22 @@ package it.bitrule.rubudu.routes.player;
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.object.Pong;
+import it.bitrule.rubudu.object.grant.GrantData;
+import it.bitrule.rubudu.object.group.GroupData;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import it.bitrule.rubudu.object.profile.ProfilePostData;
+import it.bitrule.rubudu.object.profile.ProfileResponseData;
+import it.bitrule.rubudu.registry.GrantRegistry;
+import it.bitrule.rubudu.registry.GroupRegistry;
 import it.bitrule.rubudu.registry.ProfileRegistry;
+import it.bitrule.rubudu.repository.protocol.PlayerJoinedNetworkPacket;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import lombok.NonNull;
 import spark.Route;
 import spark.Spark;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -42,12 +50,26 @@ public final class PlayerRoutes {
         }
 
         if (state.equalsIgnoreCase(STATE_ONLINE)) {
+            if (ProfileRegistry.getInstance().getProfileData(profileData.getIdentifier()) != null) {
+                state = STATE_ONLINE;
+            }
+
             ProfileRegistry.getInstance().loadProfileData(profileData);
 
             Rubudu.logger.log(Level.INFO, "Forced profile data load for {0}", profileData.getName());
         }
 
-        return profileData;
+        return new ProfileResponseData(
+                profileData.getIdentifier(),
+                profileData.getName(),
+                state,
+                profileData.getKnownAliases(),
+                profileData.getKnownAddresses(),
+                profileData.getFirstJoinDate(),
+                profileData.getLastJoinDate(),
+                profileData.getLastLogoutDate(),
+                profileData.getLastKnownServer()
+        );
     };
 
     public final static @NonNull Route POST = (request, response) -> {
@@ -75,7 +97,7 @@ public final class PlayerRoutes {
                     profilePostData.getXuid(),
                     profilePostData.getFirstJoinDate(),
                     profilePostData.getLastJoinDate(),
-                    profilePostData.getLastKnownServer()
+                    profilePostData.getLastLogoutDate()
             );
         }
 
@@ -99,8 +121,6 @@ public final class PlayerRoutes {
             Rubudu.logger.log(Level.INFO, "Forced profile data load for {0}", profileData.getName());
         }
 
-        profileData.setLastKnownServer(profilePostData.getLastKnownServer());
-
         // Save profile data async to avoid blocking the main thread
         // This going to make faster the response to the client
         ProfileData finalProfileData = profileData;
@@ -118,6 +138,51 @@ public final class PlayerRoutes {
         }
 
         ProfileRegistry.getInstance().unloadProfile(xuid);
+
+        return new Pong();
+    };
+
+    public final static @NonNull Route POST_JOINED = (request, response) -> {
+        String xuid = request.queryParams("xuid");
+        String serverId = request.queryParams("server_id");
+
+        if (xuid == null || xuid.isEmpty() || serverId == null || serverId.isEmpty()) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("xuid and serverId are required"));
+        }
+
+        ProfileData profileData = ProfileRegistry.getInstance().getProfileData(xuid);
+        if (profileData == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player non loaded"));
+        }
+
+        List<GrantData> grantsData = GrantRegistry.getInstance().getSafePlayerGrants(xuid);
+        if (grantsData == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player non loaded"));
+        }
+
+        GroupData highestGroupData = grantsData.stream()
+                .map(grantData -> GroupRegistry.getInstance().getGroup(grantData.getGroupId()))
+                .filter(Objects::nonNull)
+                .max(Comparator.comparingInt(GroupData::getPriority))
+                .orElse(null);
+        if (highestGroupData == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player non loaded"));
+        }
+
+        String lastKnownServer = ProfileRegistry.getInstance().getPlayerKnownServer(xuid);
+        if (Objects.equals(lastKnownServer, serverId)) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Player already joined this server"));
+        }
+
+        String prefix = highestGroupData.getPrefix();
+        if (prefix == null) prefix = "&7";
+
+        Rubudu.getPublisherRepository().publish(
+                PlayerJoinedNetworkPacket.create(prefix + profileData.getName(), serverId, lastKnownServer),
+                true
+        );
+
+        ProfileRegistry.getInstance().setPlayerKnownServer(xuid, serverId);
 
         return new Pong();
     };

@@ -16,12 +16,24 @@ apply plugin: CommonPlugin
 
 repositories {
     mavenLocal()
+
+    maven {
+        name "opencollab-releases"
+        url "https://repo.opencollab.dev/maven-releases/"
+    }
+
+    maven {
+        name "opencollab-snapshots"
+        url "https://repo.opencollab.dev/maven-snapshots/"
+    }
 }
 
 dependencies {
     implementation "com.sparkjava:spark-core:2.9.4"
+    implementation "org.cloudburstmc.protocol:common:3.0.0.Beta2-SNAPSHOT"
     implementation libs.miwiklark.get()
     implementation libs.mongodb.get()
+    implementation libs.jedis.get()
     compileOnly libs.gson.get()
 
     compileOnly libs.annotations.get()

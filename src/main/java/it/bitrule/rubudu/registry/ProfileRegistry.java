@@ -20,6 +20,10 @@ public final class ProfileRegistry {
     private final @NonNull Map<String, ProfileData> profilesData = new ConcurrentHashMap<>();
     private final @NonNull Map<String, String> profilesXuid = new ConcurrentHashMap<>();
     /**
+     * The known servers for the profile
+     */
+    private final @NonNull Map<String, String> knownServer = new ConcurrentHashMap<>();
+    /**
      * The pending unloads for the profile
      */
     private final @NonNull Map<String, Instant> pendingUnloads = new ConcurrentHashMap<>();
@@ -72,6 +76,28 @@ public final class ProfileRegistry {
      */
     public void unloadProfile(@NonNull String xuid) {
         this.pendingUnloads.put(xuid, Instant.now().plusSeconds(120));
+    }
+
+    /**
+     * Set the known server for the given xuid
+     *
+     * @param xuid The xuid of the player
+     * @param serverId The server id of the player
+     */
+    public void setPlayerKnownServer(@NonNull String xuid, @NonNull String serverId) {
+        this.knownServer.put(xuid, serverId);
+    }
+
+    /**
+     * Get the known server for the given xuid
+     * Usually this server is stored when the server is online
+     * The server can change when the player joins a new server
+     *
+     * @param xuid The xuid of the player
+     * @return The known server for the given xuid, or null if not found
+     */
+    public @Nullable String getPlayerKnownServer(@NonNull String xuid) {
+        return this.knownServer.get(xuid);
     }
 
     /**

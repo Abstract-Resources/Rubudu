@@ -5,6 +5,8 @@ import it.bitrule.rubudu.registry.ProfileRegistry;
 import lombok.NonNull;
 import spark.Route;
 
+import java.util.Objects;
+
 public final class ServerRoutes {
 
     public final static @NonNull Route GET_ALL = (request, response) -> {
@@ -17,7 +19,7 @@ public final class ServerRoutes {
         }
 
         return ProfileRegistry.getInstance().getProfilesData().stream()
-                .filter(profileData -> profileData.getLastKnownServer().equals(serverId))
+                .filter(profileData -> Objects.equals(profileData.getLastKnownServer(), serverId))
                 .map(ProfileData::getName)
                 .toList();
     };
