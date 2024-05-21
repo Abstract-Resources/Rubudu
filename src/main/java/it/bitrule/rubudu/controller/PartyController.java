@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.registry;
+package it.bitrule.rubudu.controller;
 
 import it.bitrule.rubudu.object.party.Party;
 import lombok.Getter;
@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class PartyRegistry {
+public final class PartyController {
 
-    @Getter private final static @NonNull PartyRegistry instance = new PartyRegistry();
+    @Getter private final static @NonNull PartyController instance = new PartyController();
 
     /**
      * The map of parties.

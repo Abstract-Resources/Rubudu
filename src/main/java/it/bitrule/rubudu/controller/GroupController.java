@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.registry;
+package it.bitrule.rubudu.controller;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.miwiklark.common.repository.Repository;
@@ -12,9 +12,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class GroupRegistry {
+public final class GroupController {
 
-    @Getter private static final GroupRegistry instance = new GroupRegistry();
+    @Getter private static final GroupController instance = new GroupController();
 
     private final @NonNull Map<String, GroupData> groups = new HashMap<>();
 

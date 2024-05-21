@@ -8,9 +8,9 @@ import it.bitrule.rubudu.object.group.GroupData;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import it.bitrule.rubudu.object.profile.ProfilePostData;
 import it.bitrule.rubudu.object.profile.ProfileResponseData;
-import it.bitrule.rubudu.registry.GrantRegistry;
-import it.bitrule.rubudu.registry.GroupRegistry;
-import it.bitrule.rubudu.registry.ProfileRegistry;
+import it.bitrule.rubudu.controller.GrantsController;
+import it.bitrule.rubudu.controller.GroupController;
+import it.bitrule.rubudu.controller.ProfileController;
 import it.bitrule.rubudu.repository.protocol.PlayerJoinedNetworkPacket;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import lombok.NonNull;
@@ -43,18 +43,18 @@ public final class PlayerRoutes {
         }
 
         ProfileData profileData = xuidEmpty
-                ? ProfileRegistry.getInstance().fetchUnsafeByName(name)
-                : ProfileRegistry.getInstance().fetchUnsafe(xuid);
+                ? ProfileController.getInstance().fetchUnsafeByName(name)
+                : ProfileController.getInstance().fetchUnsafe(xuid);
         if (profileData == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
         if (state.equalsIgnoreCase(STATE_ONLINE)) {
-            if (ProfileRegistry.getInstance().getProfileData(profileData.getIdentifier()) != null) {
+            if (ProfileController.getInstance().getProfileData(profileData.getIdentifier()) != null) {
                 state = STATE_ONLINE;
             }
 
-            ProfileRegistry.getInstance().loadProfileData(profileData);
+            ProfileController.getInstance().loadProfileData(profileData);
 
             Rubudu.logger.log(Level.INFO, "Forced profile data load for {0}", profileData.getName());
         }
@@ -90,8 +90,8 @@ public final class PlayerRoutes {
         }
 
         ProfileData profileData = state.equalsIgnoreCase(STATE_ONLINE)
-                ? ProfileRegistry.getInstance().getProfileData(profilePostData.getXuid())
-                : ProfileRegistry.getInstance().fetchUnsafe(profilePostData.getXuid());
+                ? ProfileController.getInstance().getProfileData(profilePostData.getXuid())
+                : ProfileController.getInstance().fetchUnsafe(profilePostData.getXuid());
         if (profileData == null && state.equalsIgnoreCase(STATE_ONLINE)) {
             profileData = new ProfileData(
                     profilePostData.getXuid(),
@@ -117,7 +117,7 @@ public final class PlayerRoutes {
         }
 
         if (state.equalsIgnoreCase(STATE_ONLINE)) {
-            ProfileRegistry.getInstance().loadProfileData(profileData);
+            ProfileController.getInstance().loadProfileData(profileData);
             Rubudu.logger.log(Level.INFO, "Forced profile data load for {0}", profileData.getName());
         }
 
@@ -137,7 +137,7 @@ public final class PlayerRoutes {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-        ProfileRegistry.getInstance().unloadProfile(xuid);
+        ProfileController.getInstance().unloadProfile(xuid);
 
         return new Pong();
     };
@@ -150,18 +150,18 @@ public final class PlayerRoutes {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("xuid and serverId are required"));
         }
 
-        ProfileData profileData = ProfileRegistry.getInstance().getProfileData(xuid);
+        ProfileData profileData = ProfileController.getInstance().getProfileData(xuid);
         if (profileData == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player non loaded"));
         }
 
-        List<GrantData> grantsData = GrantRegistry.getInstance().getSafePlayerGrants(xuid);
+        List<GrantData> grantsData = GrantsController.getInstance().getSafePlayerGrants(xuid);
         if (grantsData == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player non loaded"));
         }
 
         GroupData highestGroupData = grantsData.stream()
-                .map(grantData -> GroupRegistry.getInstance().getGroup(grantData.getGroupId()))
+                .map(grantData -> GroupController.getInstance().getGroup(grantData.getGroupId()))
                 .filter(Objects::nonNull)
                 .max(Comparator.comparingInt(GroupData::getPriority))
                 .orElse(null);
@@ -169,7 +169,7 @@ public final class PlayerRoutes {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player non loaded"));
         }
 
-        String lastKnownServer = ProfileRegistry.getInstance().getPlayerKnownServer(xuid);
+        String lastKnownServer = ProfileController.getInstance().getPlayerKnownServer(xuid);
         if (Objects.equals(lastKnownServer, serverId)) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("Player already joined this server"));
         }
@@ -182,7 +182,7 @@ public final class PlayerRoutes {
                 true
         );
 
-        ProfileRegistry.getInstance().setPlayerKnownServer(xuid, serverId);
+        ProfileController.getInstance().setPlayerKnownServer(xuid, serverId);
 
         return new Pong();
     };

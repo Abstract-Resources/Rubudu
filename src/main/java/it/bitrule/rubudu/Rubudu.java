@@ -1,9 +1,9 @@
 package it.bitrule.rubudu;
 
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.registry.GrantRegistry;
-import it.bitrule.rubudu.registry.GroupRegistry;
-import it.bitrule.rubudu.registry.ProfileRegistry;
+import it.bitrule.rubudu.controller.GrantsController;
+import it.bitrule.rubudu.controller.GroupController;
+import it.bitrule.rubudu.controller.ProfileController;
 import it.bitrule.rubudu.repository.PublisherRepository;
 import it.bitrule.rubudu.repository.RedisRepository;
 import it.bitrule.rubudu.repository.connection.RedisConnection;
@@ -12,7 +12,7 @@ import it.bitrule.rubudu.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.routes.PingRoute;
 import it.bitrule.rubudu.routes.group.GrantRoutes;
 import it.bitrule.rubudu.routes.group.GroupRoutes;
-import it.bitrule.rubudu.routes.party.PartyRoutes;
+import it.bitrule.rubudu.routes.party.*;
 import it.bitrule.rubudu.routes.player.PlayerRoutes;
 import it.bitrule.rubudu.routes.server.ServerRoutes;
 import lombok.Getter;
@@ -75,11 +75,10 @@ public final class Rubudu {
                 new RedisRepository(redisConnection),
                 "rubudu"
         );
-        publisherRepository.start();
 
-        ProfileRegistry.getInstance().loadAll();
-        GroupRegistry.getInstance().loadAll();
-        GrantRegistry.getInstance().loadAll();
+        ProfileController.getInstance().loadAll();
+        GroupController.getInstance().loadAll();
+        GrantsController.getInstance().loadAll();
 
         Spark.port(3000);
         Spark.init();
@@ -97,9 +96,20 @@ public final class Rubudu {
             Spark.post("/player", PlayerRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/player", PlayerRoutes.GET, new ResponseTransformerImpl());
 
-            Spark.post("/parties", PartyRoutes.POST_JOINED, new ResponseTransformerImpl());
+            Spark.post("/parties/:id/invite/:xuid", new PartyInviteRoute(), new ResponseTransformerImpl());
+            Spark.post("/parties/:id/join/:xuid", new PartyJoinRoute(), new ResponseTransformerImpl());
+            Spark.post("/parties/:id/leave/:xuid", new PartyLeaveRoute(), new ResponseTransformerImpl());
+            Spark.post("/parties/:name/accept/:xuid", new PartyAcceptRoute(), new ResponseTransformerImpl());
+            Spark.post("/parties/:id/kick/:xuid", new PartyKickRoute(), new ResponseTransformerImpl());
+            Spark.delete("/parties/:id/delete", new PartyDeleteRoute(), new ResponseTransformerImpl());
+            Spark.post("/parties/:id/transfer/:xuid", new PartyTransferRoute(), new ResponseTransformerImpl());
+
             Spark.get("/parties", PartyRoutes.GET, new ResponseTransformerImpl());
-            Spark.delete("/parties/:id", PartyRoutes.DELETE, new ResponseTransformerImpl());
+
+//            Spark.post("/parties/invite", PartyRoutes.INVITE, new ResponseTransformerImpl());
+//            Spark.post("/parties", PartyRoutes.JOIN, new ResponseTransformerImpl());
+//            Spark.delete("/parties/:id", PartyRoutes.DELETE, new ResponseTransformerImpl());
+//            Spark.get("/parties", PartyRoutes.GET, new ResponseTransformerImpl());
 
             Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());

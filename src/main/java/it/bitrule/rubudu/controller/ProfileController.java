@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.registry;
+package it.bitrule.rubudu.controller;
 
 import com.mongodb.client.model.Filters;
 import it.bitrule.miwiklark.common.Miwiklark;
@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class ProfileRegistry {
+public final class ProfileController {
 
-    @Getter private final static @NonNull ProfileRegistry instance = new ProfileRegistry();
+    @Getter private final static @NonNull ProfileController instance = new ProfileController();
 
     private final @NonNull Map<String, ProfileData> profilesData = new ConcurrentHashMap<>();
     private final @NonNull Map<String, String> profilesXuid = new ConcurrentHashMap<>();
@@ -123,6 +123,12 @@ public final class ProfileRegistry {
      */
     public @Nullable ProfileData getProfileData(@NonNull String identifier) {
         return this.profilesData.get(identifier);
+    }
+
+    public @Nullable ProfileData getProfileDataByName(@NonNull String name) {
+        return Optional.ofNullable(this.profilesXuid.get(name.toLowerCase()))
+                .map(this::getProfileData)
+                .orElse(null);
     }
 
     /**

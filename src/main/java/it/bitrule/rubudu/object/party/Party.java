@@ -23,6 +23,10 @@ public final class Party {
      * The members of the party.
      */
     private final @NonNull List<Member> members = new ArrayList<>();
+    /**
+     * The pending invites for the party.
+     */
+    private final @NonNull List<String> pendingInvites = new ArrayList<>();
 
     public @Nullable Member getMember(@NonNull String xuid) {
         for (Member member : this.members) {
