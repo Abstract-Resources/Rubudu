@@ -3,9 +3,8 @@ package it.bitrule.rubudu.routes.party;
 import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.controller.PartyController;
 import it.bitrule.rubudu.controller.ProfileController;
-import it.bitrule.rubudu.object.Pong;
-import it.bitrule.rubudu.object.party.Member;
 import it.bitrule.rubudu.object.party.Party;
+import it.bitrule.rubudu.object.party.PartyInviteResponse;
 import it.bitrule.rubudu.object.profile.ProfileData;
 import it.bitrule.rubudu.repository.protocol.PartyNetworkInvitedPacket;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
@@ -31,31 +30,24 @@ public final class PartyInviteRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("ID is required"));
         }
 
-        String xuid = request.params(":xuid");
-        if (xuid == null || xuid.isEmpty()) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
+        String playerName = request.params(":name");
+        if (playerName == null || playerName.isEmpty()) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("NAME is required"));
         }
+
+        ProfileData profileData = ProfileController.getInstance().getProfileDataByName(playerName);
+        if (profileData == null || profileData.getName() == null) return PartyInviteResponse.noOnline(playerName);
 
         Party party = PartyController.getInstance().getPartyById(id);
-        if (party == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Party not found"));
-        }
+        if (party == null) return PartyInviteResponse.noParty(profileData.getIdentifier(), profileData.getName());
 
-        ProfileData profileData = ProfileController.getInstance().getProfileData(xuid);
-        if (profileData == null || profileData.getName() == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
-        }
-
-        Member member = party.getMember(xuid);
-        if (member != null) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("Player is already in the party"));
-        }
+        if (!party.getPendingInvites().contains(profileData.getIdentifier())) return PartyInviteResponse.noInvited(profileData.getIdentifier(), profileData.getName());
 
         Rubudu.getPublisherRepository().publish(
-                PartyNetworkInvitedPacket.create(party.getId(), xuid, profileData.getName()),
+                PartyNetworkInvitedPacket.create(party.getId(), playerName, profileData.getName()),
                 true
         );
 
-        return new Pong();
+        return PartyInviteResponse.successfully(profileData.getIdentifier(), profileData.getName());
     }
 }

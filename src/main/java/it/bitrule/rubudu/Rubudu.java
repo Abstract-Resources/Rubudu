@@ -96,8 +96,8 @@ public final class Rubudu {
             Spark.post("/player", PlayerRoutes.POST, new ResponseTransformerImpl());
             Spark.get("/player", PlayerRoutes.GET, new ResponseTransformerImpl());
 
-            Spark.post("/parties/:id/invite/:xuid", new PartyInviteRoute(), new ResponseTransformerImpl());
-            Spark.post("/parties/:id/join/:xuid", new PartyCreateRoute(), new ResponseTransformerImpl());
+            Spark.post("/parties/:id/invite/:name", new PartyInviteRoute(), new ResponseTransformerImpl());
+            Spark.post("/parties/:id/create/:xuid", new PartyCreateRoute(), new ResponseTransformerImpl());
             Spark.post("/parties/:id/leave/:xuid", new PartyLeaveRoute(), new ResponseTransformerImpl());
             Spark.post("/parties/:name/accept/:xuid", new PartyAcceptRoute(), new ResponseTransformerImpl());
             Spark.post("/parties/:id/kick/:xuid", new PartyKickRoute(), new ResponseTransformerImpl());
