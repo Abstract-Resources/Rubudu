@@ -21,12 +21,12 @@ public final class PartyTransferRoute implements Route {
      */
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        String id = request.params("id");
+        String id = request.params(":id");
         if (id == null || id.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("ID is required"));
         }
 
-        String xuid = request.params("xuid");
+        String xuid = request.params(":xuid");
         if (xuid == null || xuid.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }

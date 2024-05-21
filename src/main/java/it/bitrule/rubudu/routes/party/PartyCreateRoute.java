@@ -13,7 +13,7 @@ import spark.Response;
 import spark.Route;
 import spark.Spark;
 
-public final class PartyJoinRoute implements Route {
+public final class PartyCreateRoute implements Route {
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -30,19 +30,15 @@ public final class PartyJoinRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("ID is required"));
         }
 
-        String xuid = request.queryParams("xuid");
+        String xuid = request.params(":xuid");
         if (xuid == null || xuid.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-        String role = request.queryParams("role");
-        if (role == null || role.isEmpty()) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("Role is required"));
-        }
 
         Party party = PartyController.getInstance().getPartyById(id);
-        if (party == null) {
-            PartyController.getInstance().cache(party = new Party(id, false));
+        if (party != null) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Party already exists"));
         }
 
         ProfileData profileData = ProfileController.getInstance().getProfileData(xuid);
@@ -50,13 +46,11 @@ public final class PartyJoinRoute implements Route {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
-        Member member = party.getMember(xuid);
-        if (member == null) {
-            party.getMembers().add(member = new Member(xuid, profileData.getName(), Role.valueOf(role.toUpperCase())));
-            PartyController.getInstance().cacheMember(xuid, id);
-        }
+        party = new Party(id, false);
+        party.getMembers().add(new Member(xuid, profileData.getName(), Role.OWNER));
 
-        member.setRole(Role.valueOf(role.toUpperCase()));
+        PartyController.getInstance().cacheMember(xuid, id);
+        PartyController.getInstance().cache(party);
 
         return new Pong();
     }

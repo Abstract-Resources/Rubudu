@@ -2,7 +2,6 @@ package it.bitrule.rubudu.routes.party;
 
 import it.bitrule.rubudu.controller.PartyController;
 import it.bitrule.rubudu.controller.ProfileController;
-import it.bitrule.rubudu.object.Pong;
 import it.bitrule.rubudu.object.party.Member;
 import it.bitrule.rubudu.object.party.Party;
 import it.bitrule.rubudu.object.party.Role;
@@ -30,24 +29,24 @@ public final class PartyAcceptRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("'NAME' is required"));
         }
 
-        String xuid = request.queryParams("xuid");
+        String xuid = request.params(":xuid");
         if (xuid == null || xuid.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-        ProfileData targetProfileData = ProfileController.getInstance().getProfileDataByName(targetName);
-        if (targetProfileData == null) {
+        ProfileData selfProfileData = ProfileController.getInstance().getProfileData(xuid);
+        if (selfProfileData == null || selfProfileData.getName() == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
+        }
+
+        ProfileData profileData = ProfileController.getInstance().getProfileDataByName(targetName);
+        if (profileData == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player is not online"));
         }
 
-        Party party = PartyController.getInstance().getPartyByPlayer(targetProfileData.getIdentifier());
+        Party party = PartyController.getInstance().getPartyByPlayer(profileData.getIdentifier());
         if (party == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not in party"));
-        }
-
-        ProfileData profileData = ProfileController.getInstance().getProfileData(xuid);
-        if (profileData == null || profileData.getName() == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
         Member member = party.getMember(xuid);
@@ -56,16 +55,19 @@ public final class PartyAcceptRoute implements Route {
         }
 
         if (!party.isOpen() && !party.getPendingInvites().contains(xuid)) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not invited"));
+            // TODO: Return the party without adding the member
+            // The client now know the player not has been added to the party
+            // So that's mean, never was invited or the invite expired
+            return party;
         }
 
         party.getPendingInvites().remove(xuid);
-        party.getMembers().add(new Member(xuid, profileData.getName(), Role.MEMBER));
+        party.getMembers().add(new Member(xuid, selfProfileData.getName(), Role.MEMBER));
 
         PartyController.getInstance().cacheMember(xuid, party.getId());
 
         // TODO: Publish party update to all members
 
-        return new Pong();
+        return party;
     }
 }

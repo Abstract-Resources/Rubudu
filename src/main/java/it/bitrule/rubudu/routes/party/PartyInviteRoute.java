@@ -31,7 +31,7 @@ public final class PartyInviteRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("ID is required"));
         }
 
-        String xuid = request.queryParams("xuid");
+        String xuid = request.params(":xuid");
         if (xuid == null || xuid.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
