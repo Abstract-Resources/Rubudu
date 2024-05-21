@@ -1,5 +1,6 @@
 package it.bitrule.rubudu.object.party;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
@@ -26,6 +27,7 @@ public final class Party {
     /**
      * The pending invites for the party.
      */
+    @SerializedName("pending_invites")
     private final @NonNull List<String> pendingInvites = new ArrayList<>();
 
     public @Nullable Member getMember(@NonNull String xuid) {
