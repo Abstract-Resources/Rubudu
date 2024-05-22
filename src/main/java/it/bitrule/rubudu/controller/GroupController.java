@@ -2,7 +2,6 @@ package it.bitrule.rubudu.controller;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.miwiklark.common.repository.Repository;
-import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.object.group.GroupData;
 import lombok.Getter;
 import lombok.NonNull;
@@ -27,7 +26,7 @@ public final class GroupController {
 
         groupDataRepository.findAll().forEach(this::addGroup);
 
-        Rubudu.logger.info("Loaded " + this.groups.size() + " groups");
+        System.out.println("Loaded " + this.groups.size() + " group(s)");
     }
 
     /**

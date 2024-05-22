@@ -1,16 +1,21 @@
 package it.bitrule.rubudu.routes.party;
 
+import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.controller.PartyController;
 import it.bitrule.rubudu.controller.ProfileController;
 import it.bitrule.rubudu.object.party.Member;
 import it.bitrule.rubudu.object.party.Party;
 import it.bitrule.rubudu.object.party.Role;
 import it.bitrule.rubudu.object.profile.ProfileData;
+import it.bitrule.rubudu.repository.protocol.PartyNetworkJoinedPacket;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.routes.party.response.AcceptResponse;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
+
+import static it.bitrule.rubudu.routes.party.response.AcceptResponse.*;
 
 public final class PartyAcceptRoute implements Route {
 
@@ -29,45 +34,69 @@ public final class PartyAcceptRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("'NAME' is required"));
         }
 
-        String xuid = request.params(":xuid");
-        if (xuid == null || xuid.isEmpty()) {
+        String selfXuid = request.params(":xuid");
+        if (selfXuid == null || selfXuid.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-        ProfileData selfProfileData = ProfileController.getInstance().getProfileData(xuid);
-        if (selfProfileData == null || selfProfileData.getName() == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
+        ProfileData profileData = ProfileController.getInstance().getProfileData(selfXuid);
+        if (profileData == null || profileData.getName() == null) {
+            return new AcceptResponse(null, null, State.NO_LOADED, null);
         }
 
-        ProfileData profileData = ProfileController.getInstance().getProfileDataByName(targetName);
-        if (profileData == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player is not online"));
+        if (PartyController.getInstance().getPartyByPlayer(selfXuid) != null) {
+            return new AcceptResponse(null, null, State.ALREADY_IN_PARTY, null);
         }
 
-        Party party = PartyController.getInstance().getPartyByPlayer(profileData.getIdentifier());
+        ProfileData targetProfileData = ProfileController.getInstance().getProfileDataByName(targetName);
+        if (targetProfileData == null || targetProfileData.getName() == null) {
+            return new AcceptResponse(null, targetName, State.NO_ONLINE, null);
+        }
+
+        Party party = PartyController.getInstance().getPartyByPlayer(targetProfileData.getIdentifier());
         if (party == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not in party"));
+            return new AcceptResponse(
+                    targetProfileData.getIdentifier(),
+                    targetProfileData.getName(),
+                    State.NO_PARTY,
+                    null
+            );
         }
 
-        Member member = party.getMember(xuid);
+        Member member = party.getMember(selfXuid);
         if (member != null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Self already in party"));
+            return new AcceptResponse(
+                    targetProfileData.getIdentifier(),
+                    targetProfileData.getName(),
+                    State.ALREADY_IN_PARTY,
+                    null
+            );
         }
 
-        if (!party.isOpen() && !party.getPendingInvites().contains(xuid)) {
-            // TODO: Return the party without adding the member
-            // The client now know the player not has been added to the party
-            // So that's mean, never was invited or the invite expired
-            return party;
+        if (!party.isOpen() && !party.getPendingInvites().contains(selfXuid)) {
+            return new AcceptResponse(
+                    targetProfileData.getIdentifier(),
+                    targetProfileData.getName(),
+                    State.NO_INVITE,
+                    null
+            );
         }
 
-        party.getPendingInvites().remove(xuid);
-        party.getMembers().add(new Member(xuid, selfProfileData.getName(), Role.MEMBER));
+        party.getPendingInvites().remove(selfXuid);
+        party.getMembers().add(new Member(selfXuid, profileData.getName(), Role.MEMBER));
 
-        PartyController.getInstance().cacheMember(xuid, party.getId());
+        PartyController.getInstance().cacheMember(selfXuid, party.getId());
 
-        // TODO: Publish party update to all members
+        Rubudu.getPublisherRepository().publish(
+                PartyNetworkJoinedPacket.create(party.getId(), selfXuid, profileData.getName()),
+                true
+        );
 
-        return party;
+        return new AcceptResponse(
+                targetProfileData.getIdentifier(),
+                targetProfileData.getName(),
+                State.SUCCESS,
+                party
+        );
     }
 }

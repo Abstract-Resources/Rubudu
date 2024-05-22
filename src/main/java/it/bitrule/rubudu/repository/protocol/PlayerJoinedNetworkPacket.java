@@ -47,8 +47,6 @@ public final class PlayerJoinedNetworkPacket extends CloudPacket {
         packet.serverId = serverId;
         packet.lasServerId = lasServerId;
 
-        System.out.println("DEBUG: PlayerJoinedNetworkPacket.create() called with displayName: " + displayName + ", serverId: " + serverId + ", lasServerId: " + lasServerId + ".");
-
         return packet;
     }
 }

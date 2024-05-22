@@ -20,18 +20,11 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import spark.Spark;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 @Getter
 public final class Rubudu {
 
     @Getter private final static @NonNull Rubudu instance = new Rubudu();
 
-    /**
-     * Logger for Rubudu
-     */
-    public final static @NonNull Logger logger = Logger.getLogger(Rubudu.class.getName());
     /**
      * The publisher repository
      */
@@ -59,7 +52,7 @@ public final class Rubudu {
         this.apiKey = apiKey;
         this.port = port;
 
-        logger.log(Level.INFO, "Loaded Rubudu with api-key {0} and port {1}", new Object[]{apiKey, port});
+        System.out.println("Loaded Rubudu with api-key " + apiKey + " and port " + port);
 
         String monguri = "mongodb://hyrium_database:5vXHTO256DIkwJZ@127.0.0.1:27017/";
         if (monguri == null || monguri.isEmpty()) {
@@ -83,7 +76,7 @@ public final class Rubudu {
         Spark.port(3000);
         Spark.init();
 
-        logger.log(Level.INFO, "Spark listening on port {0}", port);
+        System.out.println("Spark listening on port " + port);
 
         Spark.before("/*", new APIKeyInterceptor());
 
@@ -122,7 +115,7 @@ public final class Rubudu {
         });
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.log(Level.INFO, "Shutting down Rubudu");
+            System.out.println("Shutting down Rubudu");
 
             if (!Rubudu.this.running) return;
 
@@ -131,7 +124,7 @@ public final class Rubudu {
             if (Loader.timer != null) {
                 Loader.timer.cancel();
 
-                logger.log(Level.INFO, "Timer cancelled");
+                System.out.println("Timer cancelled");
             }
 
             Spark.awaitStop();

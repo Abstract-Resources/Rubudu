@@ -1,7 +1,6 @@
 package it.bitrule.rubudu.routes.group;
 
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.object.Pong;
 import it.bitrule.rubudu.object.grant.GrantData;
 import it.bitrule.rubudu.object.grant.GrantPostUnloadData;
@@ -19,7 +18,6 @@ import spark.Spark;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
 
 public final class GrantRoutes {
 
@@ -51,8 +49,6 @@ public final class GrantRoutes {
         List<GrantData> grantsData = GrantsController.getInstance().fetchUnsafePlayerGrants(profileData.getIdentifier());
         if (state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)) {
             GrantsController.getInstance().setPlayerGrants(profileData.getIdentifier(), grantsData);
-
-            Rubudu.logger.log(Level.INFO, "Grants has been cached into our cache for {0}", xuid);
         }
 
         return new GrantsResponseData(

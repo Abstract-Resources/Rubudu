@@ -21,7 +21,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
 
 public final class PlayerRoutes {
 
@@ -55,8 +54,6 @@ public final class PlayerRoutes {
             }
 
             ProfileController.getInstance().loadProfileData(profileData);
-
-            Rubudu.logger.log(Level.INFO, "Forced profile data load for {0}", profileData.getName());
         }
 
         return new ProfileResponseData(
@@ -105,8 +102,6 @@ public final class PlayerRoutes {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
-        Rubudu.logger.log(Level.INFO, "Updating profile data for {0}", profileData.getName());
-
         String currentName = profileData.getName();
         if (!Objects.equals(currentName, profilePostData.getName())) {
             if (currentName != null) {
@@ -118,15 +113,12 @@ public final class PlayerRoutes {
 
         if (state.equalsIgnoreCase(STATE_ONLINE)) {
             ProfileController.getInstance().loadProfileData(profileData);
-            Rubudu.logger.log(Level.INFO, "Forced profile data load for {0}", profileData.getName());
         }
 
         // Save profile data async to avoid blocking the main thread
         // This going to make faster the response to the client
         ProfileData finalProfileData = profileData;
         CompletableFuture.runAsync(() -> Miwiklark.getRepository(ProfileData.class).save(finalProfileData));
-
-        Rubudu.logger.log(Level.INFO, "Updated profile data for {0}", profileData.getName());
 
         return new Pong();
     };

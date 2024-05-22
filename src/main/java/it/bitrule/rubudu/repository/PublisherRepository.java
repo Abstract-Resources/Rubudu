@@ -1,7 +1,6 @@
 package it.bitrule.rubudu.repository;
 
 import io.netty.buffer.Unpooled;
-import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.repository.protocol.CloudByteStream;
 import it.bitrule.rubudu.repository.protocol.CloudPacket;
 import lombok.NonNull;
@@ -34,8 +33,8 @@ public final class PublisherRepository {
                 try {
                     runnable.run();
                 } catch (Exception e) {
-                    Rubudu.logger.severe("Failed to publish packet " + packet.getClass().getSimpleName() + " due to an exception:");
-                    e.printStackTrace(System.out);
+                    System.out.println("Failed to publish packet " + packet.getClass().getSimpleName() + " due to an exception:");
+                    e.printStackTrace(System.err);
                 }
             });
         } else {

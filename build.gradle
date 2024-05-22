@@ -29,8 +29,9 @@ repositories {
 }
 
 dependencies {
-    implementation "com.sparkjava:spark-core:2.9.4"
-    implementation "org.cloudburstmc.protocol:common:3.0.0.Beta2-SNAPSHOT"
+    implementation 'org.cloudburstmc.protocol:common:3.0.0.Beta2-SNAPSHOT'
+    implementation 'com.sparkjava:spark-core:2.9.4'
+
     implementation libs.miwiklark.get()
     implementation libs.mongodb.get()
     implementation libs.jedis.get()

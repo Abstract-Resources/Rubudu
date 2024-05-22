@@ -8,7 +8,7 @@ public final class PartyNetworkDisbandedPacket extends CloudPacket {
     private @Nullable String id;
 
     public PartyNetworkDisbandedPacket() {
-        super(3);
+        super(PARTY_NETWORK_DISBANDED_PACKET);
     }
 
     @Override
