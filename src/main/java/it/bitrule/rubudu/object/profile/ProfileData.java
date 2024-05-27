@@ -22,10 +22,19 @@ public final class ProfileData implements IModel {
 
     @SerializedName("known_aliases")
     private final @NonNull List<String> knownAliases = new ArrayList<>();
+    /**
+     * The known addresses of the profile.
+     */
+    @SerializedName("known_addresses")
+    private final @NonNull List<String> knownAddresses = new ArrayList<>();
+
     @SerializedName("first_join_date")
     private final @NonNull String firstJoinDate;
     @SerializedName("last_join_date")
     private @NonNull String lastJoinDate;
+    @SerializedName("last_logout_date")
+    private @NonNull String lastLogoutDate;
+
     @SerializedName("last_known_server")
-    private @NonNull String lastKnownServer;
+    private @Nullable String lastKnownServer;
 }

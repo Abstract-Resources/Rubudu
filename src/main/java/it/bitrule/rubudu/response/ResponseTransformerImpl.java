@@ -2,6 +2,7 @@ package it.bitrule.rubudu.response;
 
 import com.google.gson.JsonElement;
 import it.bitrule.miwiklark.common.Miwiklark;
+import it.bitrule.rubudu.object.Pong;
 import lombok.NonNull;
 import spark.ResponseTransformer;
 
@@ -12,7 +13,9 @@ public final class ResponseTransformerImpl implements ResponseTransformer {
         if (o instanceof JsonElement) return o.toString();
 
         String json = Miwiklark.GSON.toJson(o);
-        System.out.println("Returning: " + json);
+        if (!(o instanceof Pong)) {
+            System.out.println("Returning: " + json);
+        }
 
         return json;
     }

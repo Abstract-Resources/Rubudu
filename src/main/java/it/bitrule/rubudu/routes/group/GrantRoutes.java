@@ -1,14 +1,13 @@
 package it.bitrule.rubudu.routes.group;
 
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.object.Pong;
 import it.bitrule.rubudu.object.grant.GrantData;
 import it.bitrule.rubudu.object.grant.GrantPostUnloadData;
 import it.bitrule.rubudu.object.grant.GrantsResponseData;
 import it.bitrule.rubudu.object.profile.ProfileData;
-import it.bitrule.rubudu.registry.GrantRegistry;
-import it.bitrule.rubudu.registry.ProfileRegistry;
+import it.bitrule.rubudu.controller.GrantsController;
+import it.bitrule.rubudu.controller.ProfileController;
 import it.bitrule.rubudu.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.routes.player.PlayerRoutes;
 import it.bitrule.rubudu.utils.JavaUtils;
@@ -19,7 +18,6 @@ import spark.Spark;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
 
 public final class GrantRoutes {
 
@@ -38,8 +36,8 @@ public final class GrantRoutes {
         }
 
         ProfileData profileData = xuidEmpty
-                ? ProfileRegistry.getInstance().fetchUnsafeByName(name)
-                : ProfileRegistry.getInstance().fetchUnsafe(xuid);
+                ? ProfileController.getInstance().fetchUnsafeByName(name)
+                : ProfileController.getInstance().fetchUnsafe(xuid);
         if (profileData == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player with name " + name + " not found"));
         }
@@ -48,17 +46,15 @@ public final class GrantRoutes {
             Spark.halt(502, ResponseTransformerImpl.failedResponse("Internal server error, name is not defined"));
         }
 
-        List<GrantData> grantsData = GrantRegistry.getInstance().fetchUnsafePlayerGrants(profileData.getIdentifier());
+        List<GrantData> grantsData = GrantsController.getInstance().fetchUnsafePlayerGrants(profileData.getIdentifier());
         if (state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)) {
-            GrantRegistry.getInstance().setPlayerGrants(profileData.getIdentifier(), grantsData);
-
-            Rubudu.logger.log(Level.INFO, "Grants has been cached into our cache for {0}", xuid);
+            GrantsController.getInstance().setPlayerGrants(profileData.getIdentifier(), grantsData);
         }
 
         return new GrantsResponseData(
                 profileData.getIdentifier(),
                 profileData.getName(),
-                GrantRegistry.getInstance().getLastFetchTimestamp(profileData.getIdentifier()) != null || state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)
+                GrantsController.getInstance().getLastFetchTimestamp(profileData.getIdentifier()) != null || state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)
                         ? PlayerRoutes.STATE_ONLINE
                         : PlayerRoutes.STATE_OFFLINE,
                 grantsData.stream()
@@ -96,8 +92,8 @@ public final class GrantRoutes {
         }
 
         List<GrantData> grantsData = state.equalsIgnoreCase(PlayerRoutes.STATE_ONLINE)
-                ? GrantRegistry.getInstance().getSafePlayerGrants(grantPostData.getSourceXuid())
-                : GrantRegistry.getInstance().fetchUnsafePlayerGrants(grantPostData.getSourceXuid());
+                ? GrantsController.getInstance().getSafePlayerGrants(grantPostData.getSourceXuid())
+                : GrantsController.getInstance().fetchUnsafePlayerGrants(grantPostData.getSourceXuid());
         if (grantsData == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Grants non loaded after joining the server"));
         }
@@ -107,7 +103,7 @@ public final class GrantRoutes {
             grantsData.removeIf(grantData -> grantData.getIdentifier().equals(grantPostData.getIdentifier()));
             grantsData.add(grantPostData);
 
-            GrantRegistry.getInstance().setPlayerGrants(grantPostData.getSourceXuid(), grantsData);
+            GrantsController.getInstance().setPlayerGrants(grantPostData.getSourceXuid(), grantsData);
         }
 
         Miwiklark.getRepository(GrantData.class).save(grantPostData);
@@ -126,12 +122,12 @@ public final class GrantRoutes {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid timestamp"));
         }
 
-        Instant lastFetch = GrantRegistry.getInstance().getLastFetchTimestamp(grantPostUnloadData.getXuid());
+        Instant lastFetch = GrantsController.getInstance().getLastFetchTimestamp(grantPostUnloadData.getXuid());
         if (lastFetch != null && lastFetch.toEpochMilli() > timestampLong) {
             Spark.halt(502, ResponseTransformerImpl.failedResponse("Timestamp is older than the last fetch")); // 502 = STATUS_CODE_BAD_GATEWAY
         }
 
-        GrantRegistry.getInstance().unloadPlayerGrants(grantPostUnloadData.getXuid());
+        GrantsController.getInstance().unloadPlayerGrants(grantPostUnloadData.getXuid());
 
         return new Pong();
     };

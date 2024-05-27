@@ -1,6 +1,6 @@
 package it.bitrule.rubudu;
 
-import it.bitrule.rubudu.registry.GrantRegistry;
+import it.bitrule.rubudu.controller.GrantsController;
 import it.bitrule.rubudu.utils.JavaUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,7 @@ public final class Loader {
     private static class TimerTaskImpl extends TimerTask {
         @Override
         public void run() {
-            GrantRegistry.getInstance().tick();
+            GrantsController.getInstance().tick();
         }
     }
 }

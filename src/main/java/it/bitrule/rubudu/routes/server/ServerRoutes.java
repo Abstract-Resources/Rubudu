@@ -1,9 +1,11 @@
 package it.bitrule.rubudu.routes.server;
 
 import it.bitrule.rubudu.object.profile.ProfileData;
-import it.bitrule.rubudu.registry.ProfileRegistry;
+import it.bitrule.rubudu.controller.ProfileController;
 import lombok.NonNull;
 import spark.Route;
+
+import java.util.Objects;
 
 public final class ServerRoutes {
 
@@ -11,13 +13,13 @@ public final class ServerRoutes {
         String serverId = request.queryParams("server_id");
 
         if (serverId == null || serverId.isEmpty()) {
-            return ProfileRegistry.getInstance().getProfilesData().stream()
+            return ProfileController.getInstance().getProfilesData().stream()
                     .map(ProfileData::getName)
                     .toList();
         }
 
-        return ProfileRegistry.getInstance().getProfilesData().stream()
-                .filter(profileData -> profileData.getLastKnownServer().equals(serverId))
+        return ProfileController.getInstance().getProfilesData().stream()
+                .filter(profileData -> Objects.equals(profileData.getLastKnownServer(), serverId))
                 .map(ProfileData::getName)
                 .toList();
     };

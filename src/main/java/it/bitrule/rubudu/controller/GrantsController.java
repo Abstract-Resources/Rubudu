@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.registry;
+package it.bitrule.rubudu.controller;
 
 import com.mongodb.client.model.Filters;
 import it.bitrule.miwiklark.common.Miwiklark;
@@ -11,9 +11,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class GrantRegistry {
+public final class GrantsController {
 
-    @Getter private static final GrantRegistry instance = new GrantRegistry();
+    @Getter private static final GrantsController instance = new GrantsController();
 
     /**
      * The grants for the players

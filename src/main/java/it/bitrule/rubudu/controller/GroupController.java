@@ -1,8 +1,7 @@
-package it.bitrule.rubudu.registry;
+package it.bitrule.rubudu.controller;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.miwiklark.common.repository.Repository;
-import it.bitrule.rubudu.Rubudu;
 import it.bitrule.rubudu.object.group.GroupData;
 import lombok.Getter;
 import lombok.NonNull;
@@ -12,9 +11,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class GroupRegistry {
+public final class GroupController {
 
-    @Getter private static final GroupRegistry instance = new GroupRegistry();
+    @Getter private static final GroupController instance = new GroupController();
 
     private final @NonNull Map<String, GroupData> groups = new HashMap<>();
 
@@ -27,7 +26,7 @@ public final class GroupRegistry {
 
         groupDataRepository.findAll().forEach(this::addGroup);
 
-        Rubudu.logger.info("Loaded " + this.groups.size() + " groups");
+        System.out.println("Loaded " + this.groups.size() + " group(s)");
     }
 
     /**
