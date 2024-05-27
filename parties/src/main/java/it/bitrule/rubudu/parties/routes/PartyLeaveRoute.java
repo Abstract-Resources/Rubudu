@@ -1,18 +1,15 @@
-package it.bitrule.rubudu.app.routes.party;
+package it.bitrule.rubudu.parties.routes;
 
 import rubudu.controller.PartyController;
-import rubudu.controller.ProfileController;
 import rubudu.object.party.Member;
 import rubudu.object.party.Party;
-import rubudu.object.party.Role;
-import rubudu.object.profile.ProfileData;
 import rubudu.response.ResponseTransformerImpl;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
 
-public final class PartyCreateRoute implements Route {
+public final class PartyLeaveRoute implements Route {
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -34,22 +31,20 @@ public final class PartyCreateRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-
         Party party = PartyController.getInstance().getPartyById(id);
-        if (party != null) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("Party already exists"));
+        if (party == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Party not found"));
         }
 
-        ProfileData profileData = ProfileController.getInstance().getProfileData(xuid);
-        if (profileData == null || profileData.getName() == null) {
+        Member member = party.getMember(xuid);
+        if (member == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
-        party = new Party(id, false);
-        party.getMembers().add(new Member(xuid, profileData.getName(), Role.OWNER));
+        party.getMembers().remove(member);
+        PartyController.getInstance().removeMember(xuid);
 
-        PartyController.getInstance().cacheMember(xuid, id);
-        PartyController.getInstance().cache(party);
+        // TODO: Publish leave packet
 
         return new Pong();
     }

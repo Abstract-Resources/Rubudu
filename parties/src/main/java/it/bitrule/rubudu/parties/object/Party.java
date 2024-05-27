@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.app.object.party;
+package it.bitrule.rubudu.parties.object;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;

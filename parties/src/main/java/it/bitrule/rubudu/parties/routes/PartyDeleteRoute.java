@@ -1,15 +1,17 @@
-package it.bitrule.rubudu.app.routes.party;
+package it.bitrule.rubudu.parties.routes;
 
+import rubudu.Rubudu;
 import rubudu.controller.PartyController;
 import rubudu.object.party.Member;
 import rubudu.object.party.Party;
+import rubudu.repository.protocol.PartyNetworkDisbandedPacket;
 import rubudu.response.ResponseTransformerImpl;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
 
-public final class PartyTransferRoute implements Route {
+public final class PartyDeleteRoute implements Route {
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -26,22 +28,20 @@ public final class PartyTransferRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("ID is required"));
         }
 
-        String xuid = request.params(":xuid");
-        if (xuid == null || xuid.isEmpty()) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
-        }
-
-        Party party = PartyController.getInstance().getPartyById(id);
+        Party party = PartyController.getInstance().remove(id);
         if (party == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Party not found"));
         }
 
-        Member member = party.getMember(xuid);
-        if (member == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
+        for (Member member : party.getMembers()) {
+            PartyController.getInstance().removeMember(member.getXuid());
         }
 
-        // TODO: Transfer party ownership
-        return null;
+        Rubudu.getPublisherRepository().publish(
+                PartyNetworkDisbandedPacket.create(party.getId()),
+                true
+        );
+
+        return new Pong();
     }
 }

@@ -1,7 +1,7 @@
 package it.bitrule.rubudu.app.routes;
 
-import rubudu.Rubudu;
-import rubudu.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.app.Rubudu;
+import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import spark.Filter;
 import spark.Request;
 import spark.Response;

@@ -1,21 +1,14 @@
-package it.bitrule.rubudu.app.routes.party;
+package it.bitrule.rubudu.parties.routes;
 
-import rubudu.Rubudu;
-import rubudu.controller.PartyController;
-import rubudu.controller.ProfileController;
-import rubudu.object.party.Member;
-import rubudu.object.party.Party;
-import rubudu.object.party.Role;
-import rubudu.object.profile.ProfileData;
-import rubudu.repository.protocol.PartyNetworkJoinedPacket;
-import rubudu.response.ResponseTransformerImpl;
-import rubudu.routes.party.response.AcceptResponse;
+import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.parties.controller.PartyController;
+import it.bitrule.rubudu.parties.object.Member;
+import it.bitrule.rubudu.parties.object.Party;
+import it.bitrule.rubudu.parties.routes.response.AcceptResponse;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
-
-import static rubudu.routes.party.response.AcceptResponse.*;
 
 public final class PartyAcceptRoute implements Route {
 

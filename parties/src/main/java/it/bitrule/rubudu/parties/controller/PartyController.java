@@ -1,9 +1,12 @@
-package it.bitrule.rubudu.app.controller;
+package it.bitrule.rubudu.parties.controller;
 
-import rubudu.object.party.Party;
+import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.parties.object.Party;
+import it.bitrule.rubudu.parties.routes.*;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import spark.Spark;
 
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +28,21 @@ public final class PartyController {
      * The value is the ID of the party.
      */
     private final @NonNull Map<String, String> playersParty = new ConcurrentHashMap<>();
+
+    public void loadAll() {
+        Spark.path("/api/v1/parties", () -> {
+            // This is the section for Party routes
+            Spark.post("/:id/transfer/:xuid", new PartyTransferRoute(), new ResponseTransformerImpl());
+            Spark.post("/:name/accept/:xuid", new PartyAcceptRoute(), new ResponseTransformerImpl());
+            Spark.post("/:id/invite/:name", new PartyInviteRoute(), new ResponseTransformerImpl());
+            Spark.post("/:id/create/:xuid", new PartyCreateRoute(), new ResponseTransformerImpl());
+            Spark.post("/:id/leave/:xuid", new PartyLeaveRoute(), new ResponseTransformerImpl());
+            Spark.post("/:id/kick/:xuid", new PartyKickRoute(), new ResponseTransformerImpl());
+            Spark.delete("/:id/delete", new PartyDeleteRoute(), new ResponseTransformerImpl());
+
+            Spark.get("/", PartyRoutes.GET, new ResponseTransformerImpl());
+        });
+    }
 
     /**
      * Cache a party.

@@ -9,6 +9,7 @@ import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.messaging.RedisRepository;
 import it.bitrule.rubudu.messaging.connection.RedisConnection;
+import it.bitrule.rubudu.parties.controller.PartyController;
 import it.bitrule.rubudu.quark.controller.GrantsController;
 import it.bitrule.rubudu.quark.controller.GroupController;
 import lombok.Getter;
@@ -76,27 +77,15 @@ public final class Rubudu {
         ProfileController.getInstance().loadAll();
         GrantsController.getInstance().loadAll();
         GroupController.getInstance().loadAll();
+        PartyController.getInstance().loadAll();
 
-        Spark.path("/api", () -> {
-            Spark.get("/ping/:id", new PingRoute()); // This is the ping route
+        Spark.get("/api/v1/ping/:id", new PingRoute());
 
-            // This is the section for Party routes
-            Spark.post("/parties/:id/transfer/:xuid", new PartyTransferRoute(), new ResponseTransformerImpl());
-            Spark.post("/parties/:name/accept/:xuid", new PartyAcceptRoute(), new ResponseTransformerImpl());
-            Spark.post("/parties/:id/invite/:name", new PartyInviteRoute(), new ResponseTransformerImpl());
-            Spark.post("/parties/:id/create/:xuid", new PartyCreateRoute(), new ResponseTransformerImpl());
-            Spark.post("/parties/:id/leave/:xuid", new PartyLeaveRoute(), new ResponseTransformerImpl());
-            Spark.post("/parties/:id/kick/:xuid", new PartyKickRoute(), new ResponseTransformerImpl());
-            Spark.delete("/parties/:id/delete", new PartyDeleteRoute(), new ResponseTransformerImpl());
+        // api/server/:id/update = POST mean to update the server data
+        // api/server/:id/players = GET mean to get all the players on the server
+        // api/servers = GET mean to get all the servers
 
-            Spark.get("/parties", PartyRoutes.GET, new ResponseTransformerImpl());
-
-            // api/server/:id/update = POST mean to update the server data
-            // api/server/:id/players = GET mean to get all the players on the server
-            // api/servers = GET mean to get all the servers
-
-            Spark.get("/server/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
-        });
+        Spark.get("/server/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Shutting down Rubudu");
