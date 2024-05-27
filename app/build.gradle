@@ -1,3 +1,7 @@
 dependencies {
-    compileOnly project(':messaging')
+    implementation project(':messaging')
+    implementation project(':common')
+
+    implementation project(':quark')
+
 }

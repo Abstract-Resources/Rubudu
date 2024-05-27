@@ -1,4 +1,4 @@
-package rubudu.routes.server;
+package it.bitrule.rubudu.app.routes.server;
 
 import rubudu.object.profile.ProfileData;
 import rubudu.controller.ProfileController;

@@ -1,4 +1,4 @@
-package rubudu.routes.party;
+package it.bitrule.rubudu.app.routes.party;
 
 import rubudu.object.party.Party;
 import rubudu.object.profile.ProfileData;

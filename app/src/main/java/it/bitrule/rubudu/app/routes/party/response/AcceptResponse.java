@@ -1,4 +1,4 @@
-package rubudu.routes.party.response;
+package it.bitrule.rubudu.app.routes.party.response;
 
 import com.google.gson.annotations.SerializedName;
 import rubudu.object.party.Party;

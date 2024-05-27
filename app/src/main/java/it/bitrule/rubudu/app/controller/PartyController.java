@@ -1,4 +1,4 @@
-package rubudu.controller;
+package it.bitrule.rubudu.app.controller;
 
 import rubudu.object.party.Party;
 import lombok.Getter;

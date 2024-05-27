@@ -1,0 +1,4 @@
+dependencies {
+    compileOnly project(':messaging')
+    compileOnly project(':common')
+}

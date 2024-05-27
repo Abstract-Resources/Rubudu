@@ -1,3 +1,8 @@
 rootProject.name = "Rubudu"
 
-include('app', 'messaging')
+include 'punishments'
+include 'messaging'
+include 'profile'
+include 'common'
+include 'quark'
+include 'app'

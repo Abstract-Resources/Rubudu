@@ -1,7 +1,6 @@
-package rubudu.routes.party;
+package it.bitrule.rubudu.app.routes.party;
 
 import rubudu.controller.PartyController;
-import rubudu.object.Pong;
 import rubudu.object.party.Member;
 import rubudu.object.party.Party;
 import rubudu.response.ResponseTransformerImpl;

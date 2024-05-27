@@ -1,7 +1,7 @@
-package rubudu.routes;
+package it.bitrule.rubudu.app.routes;
 
-import rubudu.object.Pong;
-import rubudu.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.common.response.Pong;
+import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import spark.Request;
 import spark.Response;
 import spark.Route;

@@ -1,4 +1,4 @@
-package rubudu.routes;
+package it.bitrule.rubudu.app.routes;
 
 import rubudu.Rubudu;
 import rubudu.response.ResponseTransformerImpl;

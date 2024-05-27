@@ -1,8 +1,7 @@
-package rubudu.response;
+package it.bitrule.rubudu.app.response;
 
 import com.google.gson.JsonElement;
 import it.bitrule.miwiklark.common.Miwiklark;
-import rubudu.object.Pong;
 import lombok.NonNull;
 import spark.ResponseTransformer;
 
