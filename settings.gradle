@@ -3,6 +3,7 @@ rootProject.name = "Rubudu"
 include 'punishments'
 include 'messaging'
 include 'profile'
+include 'parties'
 include 'common'
 include 'quark'
 include 'app'

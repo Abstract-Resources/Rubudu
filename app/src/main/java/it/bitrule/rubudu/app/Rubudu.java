@@ -1,8 +1,10 @@
 package it.bitrule.rubudu.app;
 
 import it.bitrule.miwiklark.common.Miwiklark;
+import it.bitrule.rubudu.app.profile.controller.ProfileController;
 import it.bitrule.rubudu.app.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.app.routes.PingRoute;
+import it.bitrule.rubudu.app.routes.server.ServerRoutes;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.messaging.RedisRepository;
