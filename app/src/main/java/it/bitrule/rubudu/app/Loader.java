@@ -26,7 +26,7 @@ public final class Loader {
         }
 
         try {
-            Rubudu.getInstance().loadAll(apiKey, port);
+            App.getInstance().loadAll(apiKey, port);
 
             timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTaskImpl(), 1000L, 1000L);

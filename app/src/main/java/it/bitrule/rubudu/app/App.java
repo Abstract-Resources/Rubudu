@@ -18,9 +18,9 @@ import org.jetbrains.annotations.Nullable;
 import spark.Spark;
 
 @Getter
-public final class Rubudu {
+public final class App {
 
-    @Getter private final static @NonNull Rubudu instance = new Rubudu();
+    @Getter private final static @NonNull App instance = new App();
 
     /**
      * The publisher repository
@@ -90,9 +90,9 @@ public final class Rubudu {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Shutting down Rubudu");
 
-            if (!Rubudu.this.running) return;
+            if (!App.this.running) return;
 
-            Rubudu.this.running = false;
+            App.this.running = false;
 
             if (Loader.timer != null) {
                 Loader.timer.cancel();
