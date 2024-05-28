@@ -1,6 +1,5 @@
-package it.bitrule.rubudu.app.profile.routes;
+package it.bitrule.rubudu.app.routes;
 
-import it.bitrule.rubudu.app.profile.controller.ProfileController;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.Pong;
@@ -27,7 +26,7 @@ public final class PlayerJoinRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-        String serverId = request.params(":server_id");
+        String serverId = request.params(":server");
         if (serverId == null || serverId.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("Server ID is required"));
         }

@@ -1,5 +1,6 @@
 package it.bitrule.rubudu.quark.controller;
 
+import com.google.common.cache.*;
 import com.mongodb.client.model.Filters;
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.quark.object.grant.GrantData;
@@ -14,23 +15,33 @@ import spark.Spark;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
-public final class GrantsController {
+public final class QuarkController {
 
-    @Getter private static final GrantsController instance = new GrantsController();
+    @Getter private static final QuarkController instance = new QuarkController();
 
     /**
      * The grants for the players
      */
-    private final @NonNull Map<String, List<GrantData>> playerGrants = new ConcurrentHashMap<>();
+    private final @NonNull Map<String, List<GrantData>> cachedGrants = new ConcurrentHashMap<>();
+
     /**
      * The last fetch for the grants
      */
     private final @NonNull Map<String, Instant> lastFetch = new ConcurrentHashMap<>();
-    /**
-     * The pending unloads for the grants
-     */
-    private final @NonNull Map<String, Instant> pendingUnloads = new ConcurrentHashMap<>();
+
+    private final @NonNull Cache<String, Instant> offlineCached = CacheBuilder.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .removalListener((RemovalListener<String, Instant>) notification -> {
+                if (notification.getCause() != RemovalCause.EXPIRED) return;
+
+                cachedGrants.remove(notification.getKey());
+                lastFetch.remove(notification.getKey());
+
+                System.out.println("Removed " + notification.getKey() + " from the cache!");
+            })
+            .build();
 
     public void loadAll() {
         Miwiklark.addRepository(
@@ -39,11 +50,10 @@ public final class GrantsController {
                 "grants"
         );
 
-        Spark.path("/apiv1/grants", () -> {
-            Spark.delete("/:xuid/delete", new GrantsDeleteRoute());
-            Spark.post("/:xuid/save", new GrantsSaveRoute());
-            Spark.get("/:id/xuid", new GrantsLoadRoute());
-            Spark.get("/:id/name", new GrantsLoadRoute());
+        Spark.path("/apiv1/grants/", () -> {
+            Spark.delete(":xuid/delete", new GrantsDeleteRoute());
+            Spark.post(":xuid/save", new GrantsSaveRoute());
+            Spark.get(":id/lookup/:type", new GrantsLoadRoute());
         });
 
         Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
@@ -56,20 +66,6 @@ public final class GrantsController {
     }
 
     /**
-     * Unload the grants for the given xuid
-     * After the given time, the grants will be removed from the cache
-     */
-    public void tick() {
-        for (Map.Entry<String, Instant> entry : this.pendingUnloads.entrySet()) {
-            if (entry.getValue().isAfter(Instant.now())) continue;
-
-            this.playerGrants.remove(entry.getKey());
-            this.pendingUnloads.remove(entry.getKey());
-            this.lastFetch.remove(entry.getKey());
-        }
-    }
-
-    /**
      * Set the grants for the given xuid
      * And remove it from the pending unloads
      *
@@ -77,21 +73,21 @@ public final class GrantsController {
      * @param grants The grants for the given xuid
      */
     public void setPlayerGrants(@NonNull String xuid, @NonNull List<GrantData> grants) {
-        this.pendingUnloads.remove(xuid);
+        this.offlineCached.invalidate(xuid);
 
         this.lastFetch.put(xuid, Instant.now());
 
-        if (this.playerGrants.containsKey(xuid)) return;
+        if (this.cachedGrants.containsKey(xuid)) return;
 
-        this.playerGrants.put(xuid, grants);
+        this.cachedGrants.put(xuid, grants);
     }
 
     /**
      * Add time to the pending unload of the given xuid
      * @param xuid The xuid of the player
      */
-    public void unloadPlayerGrants(@NonNull String xuid) {
-        this.pendingUnloads.put(xuid, Instant.now().plusSeconds(120));
+    public void clearGrants(@NonNull String xuid) {
+        this.offlineCached.put(xuid, Instant.now());
     }
 
     /**
@@ -101,8 +97,8 @@ public final class GrantsController {
      * @param xuid The xuid of the player
      * @return The grants for the given xuid
      */
-    public @Nullable List<GrantData> getSafePlayerGrants(@NonNull String xuid) {
-        return this.playerGrants.get(xuid);
+    public @Nullable List<GrantData> getPlayerGrants(@NonNull String xuid) {
+        return this.cachedGrants.get(xuid);
     }
 
     /**
@@ -114,7 +110,7 @@ public final class GrantsController {
      * @return The grants for the given xuid
      */
     public @NonNull List<GrantData> fetchUnsafePlayerGrants(@NonNull String xuid) {
-        return Optional.ofNullable(this.playerGrants.get(xuid))
+        return Optional.ofNullable(this.cachedGrants.get(xuid))
                 .or(() -> Optional.of(Miwiklark.getRepository(GrantData.class).findMany(Filters.eq("source_xuid", xuid))))
                 .orElse(new ArrayList<>());
     }

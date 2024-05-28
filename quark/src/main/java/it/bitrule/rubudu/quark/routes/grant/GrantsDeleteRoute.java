@@ -4,7 +4,7 @@ import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.common.utils.JavaUtils;
-import it.bitrule.rubudu.quark.controller.GrantsController;
+import it.bitrule.rubudu.quark.controller.QuarkController;
 import it.bitrule.rubudu.quark.object.grant.GrantPostUnloadData;
 import spark.Request;
 import spark.Response;
@@ -35,12 +35,12 @@ public final class GrantsDeleteRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid timestamp"));
         }
 
-        Instant lastFetch = GrantsController.getInstance().getLastFetchTimestamp(grantPostUnloadData.getXuid());
+        Instant lastFetch = QuarkController.getInstance().getLastFetchTimestamp(grantPostUnloadData.getXuid());
         if (lastFetch != null && lastFetch.toEpochMilli() > timestampLong) {
             Spark.halt(502, ResponseTransformerImpl.failedResponse("Timestamp is older than the last fetch")); // 502 = STATUS_CODE_BAD_GATEWAY
         }
 
-        GrantsController.getInstance().unloadPlayerGrants(grantPostUnloadData.getXuid());
+        QuarkController.getInstance().clearGrants(grantPostUnloadData.getXuid());
 
         return new Pong();
     }

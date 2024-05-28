@@ -2,12 +2,13 @@ package it.bitrule.rubudu.app.profile.object;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@AllArgsConstructor
+@AllArgsConstructor @Data
 public final class ProfileResponseData {
 
     private final @NonNull String xuid;
@@ -18,7 +19,7 @@ public final class ProfileResponseData {
     /**
      * The state of the profile.
      */
-    private @Nullable String state;
+    private @Nullable PlayerState state;
 
     @SerializedName("known_aliases")
     private final @NonNull List<String> knownAliases;

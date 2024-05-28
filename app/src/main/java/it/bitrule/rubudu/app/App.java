@@ -11,7 +11,7 @@ import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.messaging.RedisRepository;
 import it.bitrule.rubudu.messaging.connection.RedisConnection;
 import it.bitrule.rubudu.parties.controller.PartyController;
-import it.bitrule.rubudu.quark.controller.GrantsController;
+import it.bitrule.rubudu.quark.controller.QuarkController;
 import it.bitrule.rubudu.quark.controller.GroupController;
 import lombok.Getter;
 import lombok.NonNull;
@@ -100,7 +100,7 @@ public final class App {
         Spark.before("/*", new APIKeyInterceptor());
 
         ProfileRepository.getInstance().loadAll();
-        GrantsController.getInstance().loadAll();
+        QuarkController.getInstance().loadAll();
         GroupController.getInstance().loadAll();
         PartyController.getInstance().loadAll(publisherRepository);
 
@@ -135,7 +135,7 @@ public final class App {
         @Override
         public void run() {
 //            ProfileController.getInstance().tick();
-            GrantsController.getInstance().tick();
+            QuarkController.getInstance().tick();
         }
     }
 }

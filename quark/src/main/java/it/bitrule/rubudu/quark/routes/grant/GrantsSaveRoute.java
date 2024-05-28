@@ -1,9 +1,10 @@
 package it.bitrule.rubudu.quark.routes.grant;
 
 import it.bitrule.miwiklark.common.Miwiklark;
+import it.bitrule.rubudu.app.profile.object.PlayerState;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
-import it.bitrule.rubudu.quark.controller.GrantsController;
+import it.bitrule.rubudu.quark.controller.QuarkController;
 import it.bitrule.rubudu.quark.object.grant.GrantData;
 import spark.Request;
 import spark.Response;
@@ -31,33 +32,29 @@ public final class GrantsSaveRoute implements Route {
      */
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        String state = request.queryParams("state");
-        if (state == null || state.isEmpty()) {
+        PlayerState state = PlayerState.parse(request.queryParams("state"));
+        if (state == null) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("State is required"));
         }
 
-        if (!Objects.equals(state, State.ONLINE.name()) && !Objects.equals(state, State.OFFLINE.name())) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("State is required and must be either 'online' or 'offline'"));
-        }
-
-        GrantData grantPostData = Miwiklark.GSON.fromJson(request.body(), GrantData.class);
+        GrantData grantPostData = ResponseTransformerImpl.parseJson(request.body(), GrantData.class);
         if (grantPostData == null) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid body"));
         }
 
-        List<GrantData> grantsData = state.equalsIgnoreCase(State.ONLINE.name())
-                ? GrantsController.getInstance().getSafePlayerGrants(grantPostData.getSourceXuid())
-                : GrantsController.getInstance().fetchUnsafePlayerGrants(grantPostData.getSourceXuid());
+        List<GrantData> grantsData = state.equals(PlayerState.ONLINE)
+                ? QuarkController.getInstance().getPlayerGrants(grantPostData.getSourceXuid())
+                : QuarkController.getInstance().fetchUnsafePlayerGrants(grantPostData.getSourceXuid());
         if (grantsData == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Grants non loaded after joining the server"));
         }
 
-        if (state.equalsIgnoreCase(State.ONLINE.name())) {
+        if (state.equals(PlayerState.ONLINE)) {
             // Remove the old grant if it exists
             grantsData.removeIf(grantData -> grantData.getIdentifier().equals(grantPostData.getIdentifier()));
             grantsData.add(grantPostData);
 
-            GrantsController.getInstance().setPlayerGrants(grantPostData.getSourceXuid(), grantsData);
+            QuarkController.getInstance().setPlayerGrants(grantPostData.getSourceXuid(), grantsData);
         }
 
         Miwiklark.getRepository(GrantData.class).save(grantPostData);

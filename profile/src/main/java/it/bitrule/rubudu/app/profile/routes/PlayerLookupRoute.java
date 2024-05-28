@@ -10,9 +10,7 @@ import spark.Response;
 import spark.Route;
 import spark.Spark;
 
-import java.util.Objects;
-
-public final class PlayerGetRoute implements Route {
+public final class PlayerLookupRoute implements Route {
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -24,42 +22,44 @@ public final class PlayerGetRoute implements Route {
      */
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        String xuid = request.queryParams("xuid");
-        String name = request.queryParams("name");
-
-        boolean xuidEmpty = xuid == null || xuid.isEmpty();
-        if (xuidEmpty && (name == null || name.isEmpty())) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID or name is required"));
+        String id = request.params(":id");
+        if (id == null) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("ID is required"));
         }
 
-        String state = request.queryParams("state");
-        if (state == null || state.isEmpty()) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("it.bitrule.rubudu.app.profile.object.State is required"));
+        String type = request.params(":type");
+        if (type == null) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Type is required"));
         }
 
-        if (!Objects.equals(state, PlayerState.ONLINE.name()) && !Objects.equals(state, PlayerState.OFFLINE.name())) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("it.bitrule.rubudu.app.profile.object.State is required and must be either 'online' or 'offline'"));
+        if (!type.equals("name") && !type.equals("xuid")) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid type"));
         }
 
-        ProfileInfo profileInfo = xuidEmpty
-                ? ProfileRepository.getInstance().getProfileByName(name)
-                : ProfileRepository.getInstance().getProfile(xuid);
+        PlayerState state = PlayerState.parse(request.queryParams("state"));
+        if (state == null) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("State is required"));
+        }
+
+        ProfileInfo profileInfo = type.equals("name")
+                ? ProfileRepository.getInstance().getProfileByName(id)
+                : ProfileRepository.getInstance().getProfile(id);
         if (profileInfo == null) {
             System.out.println("Profile not is online! Let's try to fetch it from the database");
 
-            profileInfo = xuidEmpty
-                    ? ProfileRepository.getInstance().lookupProfileByName(name)
-                    : ProfileRepository.getInstance().lookupProfile(xuid);
+            profileInfo = type.equals("name")
+                    ? ProfileRepository.getInstance().lookupProfileByName(id)
+                    : ProfileRepository.getInstance().lookupProfile(id);
         }
 
         if (profileInfo == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
-        if (state.equalsIgnoreCase(PlayerState.ONLINE.name())) {
+        if (state.equals(PlayerState.ONLINE)) {
             ProfileRepository.getInstance().cache(profileInfo);
         } else if (ProfileRepository.getInstance().getProfile(profileInfo.getIdentifier()) != null) {
-            state = PlayerState.ONLINE.name();
+            state = PlayerState.ONLINE;
         }
 
         return new ProfileResponseData(

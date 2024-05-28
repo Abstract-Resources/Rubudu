@@ -1,11 +1,12 @@
 package it.bitrule.rubudu.app.profile.repository;
 
+import com.google.common.cache.*;
 import com.mongodb.client.model.Filters;
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.miwiklark.common.repository.Repository;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.routes.PlayerDisconnectRoute;
-import it.bitrule.rubudu.app.profile.routes.PlayerGetRoute;
+import it.bitrule.rubudu.app.profile.routes.PlayerLookupRoute;
 import it.bitrule.rubudu.app.profile.routes.PlayerJoinRoute;
 import it.bitrule.rubudu.app.profile.routes.PlayerSaveRoute;
 import lombok.Getter;
@@ -16,10 +17,15 @@ import spark.Spark;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public final class ProfileRepository {
 
     @Getter private final static @NonNull ProfileRepository instance = new ProfileRepository();
+
+    private final @NonNull Cache<String, ProfileInfo> temporaryCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
 
     /**
      * The repository for the profile info
@@ -54,7 +60,8 @@ public final class ProfileRepository {
             Spark.post("/:xuid/disconnect", new PlayerDisconnectRoute());
             Spark.post("/:xuid/join/:server_id", new PlayerJoinRoute());
             Spark.post("/:xuid/save", new PlayerSaveRoute());
-            Spark.get("/", new PlayerGetRoute());
+
+            Spark.get(":id/lookup/:type", new PlayerLookupRoute());
         });
     }
 
@@ -64,6 +71,8 @@ public final class ProfileRepository {
      * @param profileInfo The profile to cache
      */
     public void cache(@NonNull ProfileInfo profileInfo) {
+        this.temporaryCache.invalidate(profileInfo.getIdentifier());
+
         this.cache.put(profileInfo.getIdentifier(), profileInfo);
 
         if (profileInfo.getName() == null) {
@@ -79,8 +88,12 @@ public final class ProfileRepository {
      * @param identifier The identifier of the profile
      */
     public void clearProfile(@NonNull String identifier) {
-        this.cache.remove(identifier);
         this.cacheXuid.remove(identifier);
+
+        ProfileInfo profileInfo = this.cache.remove(identifier);
+        if (profileInfo == null) return;
+
+        this.temporaryCache.put(identifier, profileInfo);
     }
 
     /**
