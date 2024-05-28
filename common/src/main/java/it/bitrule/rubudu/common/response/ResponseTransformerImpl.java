@@ -28,6 +28,8 @@ public final class ResponseTransformerImpl implements ResponseTransformer {
      * @param <T> The type of the class
      */
     public static @Nullable <T> T parseJson(@NonNull String json, @NonNull Class<T> clazz) {
+        if (json.isEmpty()) return null;
+
         try {
             return Miwiklark.GSON.fromJson(json, clazz);
         } catch (Exception e) {
