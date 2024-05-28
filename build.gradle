@@ -69,24 +69,3 @@ subprojects {
         withSourcesJar()
     }
 }
-
-tasks {
-    build {
-        dependsOn shadowJar
-    }
-
-    shadowJar {
-        archiveFileName.set("${rootProject.name}-${version}.jar")
-    }
-
-    jar {
-        manifest {
-            attributes["Main-Class"] = "it.bitrule.rubudu.Loader"
-        }
-    }
-
-    compileJava {
-        options.encoding = "UTF-8"
-        options.compilerArgs.add("-Xpkginfo:always")
-    }
-}

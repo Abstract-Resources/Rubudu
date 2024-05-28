@@ -1,18 +1,17 @@
 package it.bitrule.rubudu.parties.routes;
 
-import rubudu.Rubudu;
-import rubudu.controller.PartyController;
-import rubudu.controller.ProfileController;
-import rubudu.object.party.Party;
-import rubudu.routes.party.response.InviteResponse;
-import rubudu.routes.party.response.InviteResponse.State;
-import rubudu.object.profile.ProfileData;
-import rubudu.repository.protocol.PartyNetworkInvitedPacket;
-import rubudu.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.app.profile.object.ProfileInfo;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
+import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.parties.controller.PartyController;
+import it.bitrule.rubudu.parties.object.Party;
+import it.bitrule.rubudu.parties.object.response.InviteResponse;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
+
+import static it.bitrule.rubudu.parties.object.response.InviteResponse.*;
 
 public final class PartyInviteRoute implements Route {
 
@@ -36,27 +35,27 @@ public final class PartyInviteRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("NAME is required"));
         }
 
-        ProfileData profileData = ProfileController.getInstance().getProfileDataByName(playerName);
-        if (profileData == null || profileData.getName() == null) {
+        ProfileInfo profileInfo = ProfileRepository.getInstance().getProfileByName(playerName);
+        if (profileInfo == null || profileInfo.getName() == null) {
             return new InviteResponse(null, playerName, State.NO_ONLINE);
         }
 
         Party party = PartyController.getInstance().getPartyById(id);
-        if (party == null) return new InviteResponse(profileData.getIdentifier(), playerName, State.NO_PARTY);
+        if (party == null) return new InviteResponse(profileInfo.getIdentifier(), playerName, State.NO_PARTY);
 
-        if (party.getPendingInvites().contains(profileData.getIdentifier())) {
-            return new InviteResponse(profileData.getIdentifier(), playerName, State.ALREADY_INVITED);
+        if (party.getPendingInvites().contains(profileInfo.getIdentifier())) {
+            return new InviteResponse(profileInfo.getIdentifier(), playerName, State.ALREADY_INVITED);
         }
 
-        if (PartyController.getInstance().getPartyByPlayer(profileData.getIdentifier()) != null) {
-            return new InviteResponse(profileData.getIdentifier(), playerName, State.ALREADY_IN_PARTY);
+        if (PartyController.getInstance().getPartyByPlayer(profileInfo.getIdentifier()) != null) {
+            return new InviteResponse(profileInfo.getIdentifier(), playerName, State.ALREADY_IN_PARTY);
         }
 
-        Rubudu.getPublisherRepository().publish(
-                PartyNetworkInvitedPacket.create(party.getId(), playerName, profileData.getName()),
-                true
-        );
+//        Rubudu.getPublisherRepository().publish(
+//                PartyNetworkInvitedPacket.create(party.getId(), playerName, profileInfo.getName()),
+//                true
+//        );
 
-        return new InviteResponse(profileData.getIdentifier(), playerName, State.SUCCESS);
+        return new InviteResponse(profileInfo.getIdentifier(), playerName, State.SUCCESS);
     }
 }

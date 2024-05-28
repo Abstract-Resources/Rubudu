@@ -1,7 +1,8 @@
 package it.bitrule.rubudu.app.profile.routes;
 
 import it.bitrule.rubudu.app.profile.controller.ProfileController;
-import it.bitrule.rubudu.app.profile.object.ProfileData;
+import it.bitrule.rubudu.app.profile.object.ProfileInfo;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import spark.Request;
@@ -31,8 +32,8 @@ public final class PlayerJoinRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("Server ID is required"));
         }
 
-        ProfileData profileData = ProfileController.getInstance().getProfileData(xuid);
-        if (profileData == null) {
+        ProfileInfo profileInfo = ProfileRepository.getInstance().getProfile(xuid);
+        if (profileInfo == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player non loaded"));
         }
 
@@ -63,7 +64,7 @@ public final class PlayerJoinRoute implements Route {
 //                true
 //        );
 
-        ProfileController.getInstance().setPlayerKnownServer(xuid, serverId);
+        ProfileRepository.getInstance().setPlayerKnownServer(xuid, serverId);
 
         return new Pong();
     }

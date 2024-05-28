@@ -1,9 +1,9 @@
 package it.bitrule.rubudu.app.profile.routes;
 
-import it.bitrule.rubudu.app.profile.controller.ProfileController;
 import it.bitrule.rubudu.app.profile.object.PlayerState;
-import it.bitrule.rubudu.app.profile.object.ProfileData;
+import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.object.ProfileResponseData;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import spark.Request;
 import spark.Response;
@@ -41,29 +41,37 @@ public final class PlayerGetRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("it.bitrule.rubudu.app.profile.object.State is required and must be either 'online' or 'offline'"));
         }
 
-        ProfileData profileData = xuidEmpty
-                ? ProfileController.getInstance().fetchUnsafeByName(name)
-                : ProfileController.getInstance().fetchUnsafe(xuid);
-        if (profileData == null) {
+        ProfileInfo profileInfo = xuidEmpty
+                ? ProfileRepository.getInstance().getProfileByName(name)
+                : ProfileRepository.getInstance().getProfile(xuid);
+        if (profileInfo == null) {
+            System.out.println("Profile not is online! Let's try to fetch it from the database");
+
+            profileInfo = xuidEmpty
+                    ? ProfileRepository.getInstance().lookupProfileByName(name)
+                    : ProfileRepository.getInstance().lookupProfile(xuid);
+        }
+
+        if (profileInfo == null) {
             Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
         }
 
-        if (ProfileController.getInstance().getProfileData(profileData.getIdentifier()) != null) state = PlayerState.ONLINE.name();
-
         if (state.equalsIgnoreCase(PlayerState.ONLINE.name())) {
-            ProfileController.getInstance().loadProfileData(profileData);
+            ProfileRepository.getInstance().cache(profileInfo);
+        } else if (ProfileRepository.getInstance().getProfile(profileInfo.getIdentifier()) != null) {
+            state = PlayerState.ONLINE.name();
         }
 
         return new ProfileResponseData(
-                profileData.getIdentifier(),
-                profileData.getName(),
+                profileInfo.getIdentifier(),
+                profileInfo.getName(),
                 state,
-                profileData.getKnownAliases(),
-                profileData.getKnownAddresses(),
-                profileData.getFirstJoinDate(),
-                profileData.getLastJoinDate(),
-                profileData.getLastLogoutDate(),
-                profileData.getLastKnownServer()
+                profileInfo.getKnownAliases(),
+                profileInfo.getKnownAddresses(),
+                profileInfo.getFirstJoinDate(),
+                profileInfo.getLastJoinDate(),
+                profileInfo.getLastLogoutDate(),
+                profileInfo.getLastKnownServer()
         );
     }
 }

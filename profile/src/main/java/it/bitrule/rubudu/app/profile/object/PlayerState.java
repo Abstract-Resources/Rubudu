@@ -1,5 +1,16 @@
 package it.bitrule.rubudu.app.profile.object;
 
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
+
 public enum PlayerState {
-    ONLINE, OFFLINE
+    ONLINE, OFFLINE;
+
+    public static @Nullable PlayerState parse(@NonNull String state) {
+        return switch (state.toLowerCase()) {
+            case "online" -> ONLINE;
+            case "offline" -> OFFLINE;
+            default -> null;
+        };
+    }
 }

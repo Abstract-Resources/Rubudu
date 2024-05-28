@@ -2,7 +2,7 @@ package it.bitrule.rubudu.app.profile.controller;
 
 import com.mongodb.client.model.Filters;
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.app.profile.object.ProfileData;
+import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.routes.PlayerDisconnectRoute;
 import it.bitrule.rubudu.app.profile.routes.PlayerGetRoute;
 import it.bitrule.rubudu.app.profile.routes.PlayerJoinRoute;
@@ -18,11 +18,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class ProfileController {
+private final class ProfileController {
 
     @Getter private final static @NonNull ProfileController instance = new ProfileController();
 
-    private final @NonNull Map<String, ProfileData> profilesData = new ConcurrentHashMap<>();
+    private final @NonNull Map<String, ProfileInfo> profilesData = new ConcurrentHashMap<>();
     private final @NonNull Map<String, String> profilesXuid = new ConcurrentHashMap<>();
     /**
      * The known servers for the profile
@@ -32,21 +32,6 @@ public final class ProfileController {
      * The pending unloads for the profile
      */
     private final @NonNull Map<String, Instant> pendingUnloads = new ConcurrentHashMap<>();
-
-    public void loadAll() {
-        Miwiklark.addRepository(
-                ProfileData.class,
-                "rubudu",
-                "profiles"
-        );
-
-        Spark.path("/api/v1/player", () -> {
-            Spark.post("/:xuid/disconnect", new PlayerDisconnectRoute());
-            Spark.post("/:xuid/join/:server_id", new PlayerJoinRoute());
-            Spark.post("/:xuid/save", new PlayerSaveRoute());
-            Spark.get("/", new PlayerGetRoute());
-        });
-    }
 
     /**
      * Unload the profile for the given xuid
@@ -66,99 +51,19 @@ public final class ProfileController {
      * Load the given ProfileData into the cache
      * And remove it from the pending unloads
      *
-     * @param profileData The ProfileData to load
+     * @param profileInfo The ProfileData to load
      */
-    public void loadProfileData(@NonNull ProfileData profileData) {
-        this.pendingUnloads.remove(profileData.getIdentifier());
+    public void loadProfileData(@NonNull ProfileInfo profileInfo) {
+        this.pendingUnloads.remove(profileInfo.getIdentifier());
 
-        if (this.profilesData.containsKey(profileData.getIdentifier())) return;
+        if (this.profilesData.containsKey(profileInfo.getIdentifier())) return;
 
-        String currentName = profileData.getName();
+        String currentName = profileInfo.getName();
         if (currentName == null) {
             throw new IllegalArgumentException("ProfileData name cannot be null");
         }
 
-        this.profilesData.put(profileData.getIdentifier(), profileData);
-        this.profilesXuid.put(currentName.toLowerCase(), profileData.getIdentifier());
-    }
-
-    /**
-     * Add time to the pending unload of the given xuid
-     * @param xuid The xuid of the player
-     */
-    public void unloadProfile(@NonNull String xuid) {
-        this.pendingUnloads.put(xuid, Instant.now().plusSeconds(120));
-    }
-
-    /**
-     * Set the known server for the given xuid
-     *
-     * @param xuid The xuid of the player
-     * @param serverId The server id of the player
-     */
-    public void setPlayerKnownServer(@NonNull String xuid, @NonNull String serverId) {
-        this.knownServer.put(xuid, serverId);
-    }
-
-    /**
-     * Get the known server for the given xuid
-     * Usually this server is stored when the server is online
-     * The server can change when the player joins a new server
-     *
-     * @param xuid The xuid of the player
-     * @return The known server for the given xuid, or null if not found
-     */
-    public @Nullable String getPlayerKnownServer(@NonNull String xuid) {
-        return this.knownServer.get(xuid);
-    }
-
-    /**
-     * Get the ProfileData for the given identifier
-     * This method is unsafe due to the fact that it does not check the cache before querying the database
-     * So we should use this when we don't know if the ProfileData is already in the cache
-     *
-     * @param identifier The identifier of the ProfileData
-     * @return The ProfileData for the given identifier, or null if not found
-     */
-    public @Nullable ProfileData fetchUnsafe(@NonNull String identifier) {
-        return Optional.ofNullable(this.profilesData.get(identifier))
-                .or(() -> Miwiklark.getRepository(ProfileData.class).findOne(identifier))
-                .orElse(null);
-    }
-
-    /**
-     * Get the ProfileData for the given identifier
-     * This method is safe due to only querying the cache
-     *
-     * @param identifier The identifier of the ProfileData
-     * @return The ProfileData for the given identifier, or null if not found
-     */
-    public @Nullable ProfileData getProfileData(@NonNull String identifier) {
-        return this.profilesData.get(identifier);
-    }
-
-    public @Nullable ProfileData getProfileDataByName(@NonNull String name) {
-        return Optional.ofNullable(this.profilesXuid.get(name.toLowerCase()))
-                .map(this::getProfileData)
-                .orElse(null);
-    }
-
-    /**
-     * Get the ProfileData for the given identifier
-     * This method is unsafe due to the fact that it does not check the cache before querying the database
-     * So we should use this when we don't know if the ProfileData is already in the cache
-     *
-     * @param name The name of the player represented by the ProfileData
-     * @return The ProfileData for the given identifier, or null if not found
-     */
-    public @Nullable ProfileData fetchUnsafeByName(@NonNull String name) {
-        return Optional.ofNullable(this.profilesXuid.get(name.toLowerCase()))
-                .map(this::fetchUnsafe)
-                .or(() -> Miwiklark.getRepository(ProfileData.class).findBy(Filters.eq("name", name)))
-                .orElse(null);
-    }
-
-    public @NonNull Collection<ProfileData> getProfilesData() {
-        return this.profilesData.values();
+        this.profilesData.put(profileInfo.getIdentifier(), profileInfo);
+        this.profilesXuid.put(currentName.toLowerCase(), profileInfo.getIdentifier());
     }
 }

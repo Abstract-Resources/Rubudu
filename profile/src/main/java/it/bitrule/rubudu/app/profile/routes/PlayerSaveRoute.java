@@ -1,10 +1,10 @@
 package it.bitrule.rubudu.app.profile.routes;
 
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.app.profile.controller.ProfileController;
 import it.bitrule.rubudu.app.profile.object.PlayerState;
-import it.bitrule.rubudu.app.profile.object.ProfileData;
+import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.object.ProfilePostData;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import spark.Request;
@@ -27,31 +27,21 @@ public final class PlayerSaveRoute implements Route {
      */
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        String state = request.queryParams("state");
-        if (state == null || state.isEmpty()) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("PlayerState is required"));
+        PlayerState state = PlayerState.parse(request.queryParams("state"));
+        if (state == null) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("State is required"));
         }
 
-        if (!Objects.equals(state, PlayerState.ONLINE.name()) && !Objects.equals(state, PlayerState.OFFLINE.name())) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("it.bitrule.rubudu.app.profile.object.State is required and must be either 'online' or 'offline'"));
-        }
-
-        ProfilePostData profilePostData = null;
-        try {
-            profilePostData = Miwiklark.GSON.fromJson(request.body(), ProfilePostData.class);
-        } catch (Exception e) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid body"));
-        }
-
+        ProfilePostData profilePostData = ResponseTransformerImpl.parseJson(request.body(), ProfilePostData.class);
         if (profilePostData == null) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid body"));
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("An error occurred while parsing the body"));
         }
 
-        ProfileData profileData = state.equalsIgnoreCase(PlayerState.ONLINE.name())
-                ? ProfileController.getInstance().getProfileData(profilePostData.getXuid())
-                : ProfileController.getInstance().fetchUnsafe(profilePostData.getXuid());
-        if (profileData == null && state.equalsIgnoreCase(PlayerState.ONLINE.name())) {
-            profileData = new ProfileData(
+        ProfileInfo profileInfo = state.equals(PlayerState.ONLINE)
+                ? ProfileRepository.getInstance().getProfile(profilePostData.getXuid())
+                : ProfileRepository.getInstance().lookupProfile(profilePostData.getXuid());
+        if (profileInfo == null && state.equals(PlayerState.ONLINE)) {
+            profileInfo = new ProfileInfo(
                     profilePostData.getXuid(),
                     profilePostData.getFirstJoinDate(),
                     profilePostData.getLastJoinDate(),
@@ -59,27 +49,25 @@ public final class PlayerSaveRoute implements Route {
             );
         }
 
-        if (profileData == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
+        if (profileInfo == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Storage for the player not found"));
         }
 
-        String currentName = profileData.getName();
+        String currentName = profileInfo.getName();
         if (!Objects.equals(currentName, profilePostData.getName())) {
             if (currentName != null) {
-                profileData.getKnownAliases().add(currentName);
+                profileInfo.getKnownAliases().add(currentName);
             }
 
-            profileData.setName(profilePostData.getName());
+            profileInfo.setName(profilePostData.getName());
         }
 
-        if (state.equalsIgnoreCase(PlayerState.ONLINE.name())) {
-            ProfileController.getInstance().loadProfileData(profileData);
-        }
+        if (state.equals(PlayerState.ONLINE)) ProfileRepository.getInstance().cache(profileInfo);
 
         // Save profile data async to avoid blocking the main thread
         // This going to make faster the response to the client
-        ProfileData finalProfileData = profileData;
-        CompletableFuture.runAsync(() -> Miwiklark.getRepository(ProfileData.class).save(finalProfileData));
+        ProfileInfo finalProfileInfo = profileInfo;
+        CompletableFuture.runAsync(() -> Miwiklark.getRepository(ProfileInfo.class).save(finalProfileInfo));
 
         return new Pong();
     }

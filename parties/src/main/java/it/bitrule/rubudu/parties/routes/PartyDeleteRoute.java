@@ -1,11 +1,10 @@
 package it.bitrule.rubudu.parties.routes;
 
-import rubudu.Rubudu;
-import rubudu.controller.PartyController;
-import rubudu.object.party.Member;
-import rubudu.object.party.Party;
-import rubudu.repository.protocol.PartyNetworkDisbandedPacket;
-import rubudu.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.common.response.Pong;
+import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.parties.controller.PartyController;
+import it.bitrule.rubudu.parties.object.Member;
+import it.bitrule.rubudu.parties.object.Party;
 import spark.Request;
 import spark.Response;
 import spark.Route;

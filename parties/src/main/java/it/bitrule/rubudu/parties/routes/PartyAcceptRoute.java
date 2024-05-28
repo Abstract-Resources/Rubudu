@@ -1,14 +1,19 @@
 package it.bitrule.rubudu.parties.routes;
 
+import it.bitrule.rubudu.app.profile.object.ProfileInfo;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.parties.controller.PartyController;
 import it.bitrule.rubudu.parties.object.Member;
 import it.bitrule.rubudu.parties.object.Party;
-import it.bitrule.rubudu.parties.routes.response.AcceptResponse;
+import it.bitrule.rubudu.parties.object.Role;
+import it.bitrule.rubudu.parties.object.response.AcceptResponse;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
+
+import static it.bitrule.rubudu.parties.object.response.AcceptResponse.*;
 
 public final class PartyAcceptRoute implements Route {
 
@@ -22,18 +27,13 @@ public final class PartyAcceptRoute implements Route {
      */
     @Override
     public Object handle(Request request, Response response) throws Exception {
-        String targetName = request.params(":name");
-        if (targetName == null || targetName.isEmpty()) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("'NAME' is required"));
-        }
-
         String selfXuid = request.params(":xuid");
         if (selfXuid == null || selfXuid.isEmpty()) {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-        ProfileData profileData = ProfileController.getInstance().getProfileData(selfXuid);
-        if (profileData == null || profileData.getName() == null) {
+        ProfileInfo profileInfo = ProfileRepository.getInstance().getProfile(selfXuid);
+        if (profileInfo == null || profileInfo.getName() == null) {
             return new AcceptResponse(null, null, State.NO_LOADED, null);
         }
 
@@ -41,16 +41,21 @@ public final class PartyAcceptRoute implements Route {
             return new AcceptResponse(null, null, State.ALREADY_IN_PARTY, null);
         }
 
-        ProfileData targetProfileData = ProfileController.getInstance().getProfileDataByName(targetName);
-        if (targetProfileData == null || targetProfileData.getName() == null) {
+        String targetName = request.params(":name");
+        if (targetName == null || targetName.isEmpty()) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("'NAME' is required"));
+        }
+
+        ProfileInfo ownershipInfo = ProfileRepository.getInstance().getProfileByName(targetName);
+        if (ownershipInfo == null || ownershipInfo.getName() == null) {
             return new AcceptResponse(null, targetName, State.NO_ONLINE, null);
         }
 
-        Party party = PartyController.getInstance().getPartyByPlayer(targetProfileData.getIdentifier());
+        Party party = PartyController.getInstance().getPartyByPlayer(ownershipInfo.getIdentifier());
         if (party == null) {
             return new AcceptResponse(
-                    targetProfileData.getIdentifier(),
-                    targetProfileData.getName(),
+                    ownershipInfo.getIdentifier(),
+                    ownershipInfo.getName(),
                     State.NO_PARTY,
                     null
             );
@@ -59,8 +64,8 @@ public final class PartyAcceptRoute implements Route {
         Member member = party.getMember(selfXuid);
         if (member != null) {
             return new AcceptResponse(
-                    targetProfileData.getIdentifier(),
-                    targetProfileData.getName(),
+                    ownershipInfo.getIdentifier(),
+                    ownershipInfo.getName(),
                     State.ALREADY_IN_PARTY,
                     null
             );
@@ -68,26 +73,26 @@ public final class PartyAcceptRoute implements Route {
 
         if (!party.isOpen() && !party.getPendingInvites().contains(selfXuid)) {
             return new AcceptResponse(
-                    targetProfileData.getIdentifier(),
-                    targetProfileData.getName(),
+                    ownershipInfo.getIdentifier(),
+                    ownershipInfo.getName(),
                     State.NO_INVITE,
                     null
             );
         }
 
         party.getPendingInvites().remove(selfXuid);
-        party.getMembers().add(new Member(selfXuid, profileData.getName(), Role.MEMBER));
+        party.getMembers().add(new Member(selfXuid, profileInfo.getName(), Role.MEMBER));
 
         PartyController.getInstance().cacheMember(selfXuid, party.getId());
 
-        Rubudu.getPublisherRepository().publish(
-                PartyNetworkJoinedPacket.create(party.getId(), selfXuid, profileData.getName()),
-                true
-        );
+//        Rubudu.getPublisherRepository().publish(
+//                PartyNetworkJoinedPacket.create(party.getId(), selfXuid, profileInfo.getName()),
+//                true
+//        );
 
         return new AcceptResponse(
-                targetProfileData.getIdentifier(),
-                targetProfileData.getName(),
+                ownershipInfo.getIdentifier(),
+                ownershipInfo.getName(),
                 State.SUCCESS,
                 party
         );

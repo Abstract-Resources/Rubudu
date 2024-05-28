@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor @Data
-public final class ProfileData implements IModel {
+public final class ProfileInfo implements IModel {
 
     @SerializedName("_id")
     private final @NonNull String identifier;

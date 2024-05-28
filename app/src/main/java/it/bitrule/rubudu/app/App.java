@@ -2,10 +2,12 @@ package it.bitrule.rubudu.app;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.app.profile.controller.ProfileController;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.app.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.app.routes.PingRoute;
 import it.bitrule.rubudu.app.routes.server.ServerRoutes;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.common.utils.JavaUtils;
 import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.messaging.RedisRepository;
 import it.bitrule.rubudu.messaging.connection.RedisConnection;
@@ -17,10 +19,15 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import spark.Spark;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 @Getter
 public final class App {
 
     @Getter private final static @NonNull App instance = new App();
+
+    static @Nullable Timer timer = null;
 
     /**
      * The publisher repository
@@ -40,6 +47,30 @@ public final class App {
      * The port for Rubudu
      */
     private int port = -1;
+
+    public static void main(String[] args) {
+        if (args.length != 2) {
+            System.err.println("Usage: java -jar rubudu.jar <apiKey> <port>");
+            System.exit(1);
+        }
+
+        String apiKey = args[0];
+        Integer port = JavaUtils.parseInt(args[1]);
+        if (port == null) {
+            System.err.println("Invalid port number: " + args[1]);
+            System.exit(1);
+        }
+
+        try {
+            instance.loadAll(apiKey, port);
+
+            timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTaskImpl(), 1000L, 1000L);
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            System.exit(1);
+        }
+    }
 
     public void loadAll(@NonNull String apiKey, int port) {
         if (this.apiKey != null) {
@@ -74,7 +105,7 @@ public final class App {
         Spark.defaultResponseTransformer(new ResponseTransformerImpl());
         Spark.before("/*", new APIKeyInterceptor());
 
-        ProfileController.getInstance().loadAll();
+        ProfileRepository.getInstance().loadAll();
         GrantsController.getInstance().loadAll();
         GroupController.getInstance().loadAll();
         PartyController.getInstance().loadAll();
@@ -94,8 +125,8 @@ public final class App {
 
             App.this.running = false;
 
-            if (Loader.timer != null) {
-                Loader.timer.cancel();
+            if (timer != null) {
+                timer.cancel();
 
                 System.out.println("Timer cancelled");
             }
@@ -112,5 +143,13 @@ public final class App {
         }
 
         return publisherRepository;
+    }
+
+    private static class TimerTaskImpl extends TimerTask {
+        @Override
+        public void run() {
+//            ProfileController.getInstance().tick();
+            GrantsController.getInstance().tick();
+        }
     }
 }

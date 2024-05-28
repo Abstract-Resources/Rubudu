@@ -2,18 +2,18 @@ package it.bitrule.rubudu.parties.routes;
 
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
-import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.parties.controller.PartyController;
-import it.bitrule.rubudu.parties.object.Member;
 import it.bitrule.rubudu.parties.object.Party;
-import it.bitrule.rubudu.parties.object.Role;
+import lombok.RequiredArgsConstructor;
+import lombok.NonNull;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
 
-public final class PartyCreateRoute implements Route {
+@RequiredArgsConstructor
+public final class PartyLookupRoute implements Route {
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -30,28 +30,29 @@ public final class PartyCreateRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("ID is required"));
         }
 
-        String xuid = request.params(":xuid");
-        if (xuid == null || xuid.isEmpty()) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
+        String type = request.params(":type");
+        if (type == null || type.isEmpty()) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Type is required"));
         }
 
-
-        Party party = PartyController.getInstance().getPartyById(id);
-        if (party != null) {
-            Spark.halt(400, ResponseTransformerImpl.failedResponse("Party already exists"));
+        if (!type.equals("name") && !type.equals("xuid")) {
+            Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid type"));
         }
 
-        ProfileInfo profileInfo = ProfileRepository.getInstance().getProfile(xuid);
-        if (profileInfo == null || profileInfo.getName() == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
+        if (type.equals("name")) {
+            ProfileInfo profileInfo = ProfileRepository.getInstance().getProfileByName(id);
+            if (profileInfo == null || profileInfo.getName() == null) {
+                Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
+            }
+
+            id = profileInfo.getIdentifier();
         }
 
-        party = new Party(id, false);
-        party.getMembers().add(new Member(xuid, profileInfo.getName(), Role.OWNER));
+        Party party = PartyController.getInstance().getPartyByPlayer(id);
+        if (party == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player is not in a party"));
+        }
 
-        PartyController.getInstance().cacheMember(xuid, id);
-        PartyController.getInstance().cache(party);
-
-        return new Pong();
+        return party;
     }
 }

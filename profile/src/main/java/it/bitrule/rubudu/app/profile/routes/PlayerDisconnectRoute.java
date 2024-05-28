@@ -1,6 +1,7 @@
 package it.bitrule.rubudu.app.profile.routes;
 
 import it.bitrule.rubudu.app.profile.controller.ProfileController;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import spark.Request;
@@ -25,7 +26,7 @@ public final class PlayerDisconnectRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("XUID is required"));
         }
 
-        ProfileController.getInstance().unloadProfile(xuid);
+        ProfileRepository.getInstance().clearProfile(xuid);
 
         return new Pong();
     }

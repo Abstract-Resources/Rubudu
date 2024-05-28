@@ -30,17 +30,17 @@ public final class PartyController {
     private final @NonNull Map<String, String> playersParty = new ConcurrentHashMap<>();
 
     public void loadAll() {
-        Spark.path("/api/v1/parties", () -> {
+        Spark.path("/api/v1/parties/", () -> {
             // This is the section for Party routes
-            Spark.post("/:id/transfer/:xuid", new PartyTransferRoute(), new ResponseTransformerImpl());
-            Spark.post("/:name/accept/:xuid", new PartyAcceptRoute(), new ResponseTransformerImpl());
-            Spark.post("/:id/invite/:name", new PartyInviteRoute(), new ResponseTransformerImpl());
-            Spark.post("/:id/create/:xuid", new PartyCreateRoute(), new ResponseTransformerImpl());
-            Spark.post("/:id/leave/:xuid", new PartyLeaveRoute(), new ResponseTransformerImpl());
-            Spark.post("/:id/kick/:xuid", new PartyKickRoute(), new ResponseTransformerImpl());
-            Spark.delete("/:id/delete", new PartyDeleteRoute(), new ResponseTransformerImpl());
+            Spark.post(":id/transfer/:xuid", new PartyTransferRoute(), new ResponseTransformerImpl());
+            Spark.post(":name/accept/:xuid", new PartyAcceptRoute(), new ResponseTransformerImpl());
+            Spark.post(":id/invite/:name", new PartyInviteRoute(), new ResponseTransformerImpl());
+            Spark.post(":id/create/:xuid", new PartyCreateRoute(), new ResponseTransformerImpl());
+            Spark.post(":id/leave/:xuid", new PartyLeaveRoute(), new ResponseTransformerImpl());
+            Spark.post(":id/kick/:xuid", new PartyKickRoute(), new ResponseTransformerImpl());
+            Spark.delete(":id/delete", new PartyDeleteRoute(), new ResponseTransformerImpl());
 
-            Spark.get("/", PartyRoutes.GET, new ResponseTransformerImpl());
+            Spark.get(":id/lookup/:type", new PartyLookupRoute());
         });
     }
 

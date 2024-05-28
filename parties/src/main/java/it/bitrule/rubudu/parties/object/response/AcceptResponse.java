@@ -1,12 +1,13 @@
-package it.bitrule.rubudu.parties.routes.response;
+package it.bitrule.rubudu.parties.object.response;
 
 import com.google.gson.annotations.SerializedName;
-import rubudu.object.party.Party;
+import it.bitrule.rubudu.parties.object.Party;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-@AllArgsConstructor
+@AllArgsConstructor @Data
 public final class AcceptResponse {
 
     public enum State {
