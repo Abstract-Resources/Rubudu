@@ -9,76 +9,66 @@ plugins {
     alias libs.plugins.shadow
 }
 
-apply plugin: "java"
-apply plugin: ASpotlessPlugin
-apply plugin: PublishPlugin
-apply plugin: CommonPlugin
+subprojects {
+    this.version = rootProject.version
 
-repositories {
-    mavenLocal()
+    apply plugin: "java"
+    apply plugin: ASpotlessPlugin
+    apply plugin: PublishPlugin
+    apply plugin: CommonPlugin
 
-    maven {
-        name "opencollab-releases"
-        url "https://repo.opencollab.dev/maven-releases/"
-    }
+    repositories {
+        mavenLocal()
 
-    maven {
-        name "opencollab-snapshots"
-        url "https://repo.opencollab.dev/maven-snapshots/"
-    }
-}
+        maven {
+            name "opencollab-releases"
+            url "https://repo.opencollab.dev/maven-releases/"
+        }
 
-dependencies {
-    implementation 'org.cloudburstmc.protocol:common:3.0.0.Beta2-SNAPSHOT'
-    implementation 'com.sparkjava:spark-core:2.9.4'
-
-    implementation libs.miwiklark.get()
-    implementation libs.mongodb.get()
-    implementation libs.jedis.get()
-    compileOnly libs.gson.get()
-
-    compileOnly libs.annotations.get()
-    compileOnly libs.lombok.get()
-    annotationProcessor libs.lombok.get()
-
-    testCompileOnly libs.lombok.get()
-    testAnnotationProcessor libs.lombok.get()
-}
-
-tasks {
-    build {
-        dependsOn spotlessApply
-        dependsOn shadowJar
-    }
-
-    shadowJar {
-        archiveFileName.set("${rootProject.name}-${version}.jar")
-    }
-
-    jar {
-        manifest {
-            attributes["Main-Class"] = "it.bitrule.rubudu.Loader"
+        maven {
+            name "opencollab-snapshots"
+            url "https://repo.opencollab.dev/maven-snapshots/"
         }
     }
 
-    compileJava {
-        options.encoding = "UTF-8"
-        options.compilerArgs.add("-Xpkginfo:always")
+    dependencies {
+        implementation 'org.cloudburstmc.protocol:common:3.0.0.Beta2-SNAPSHOT'
+        implementation ('com.google.guava:guava:11.0.2') {
+            exclude group: 'com.google.collections', module: 'google-collections'
+        }
+        implementation 'com.sparkjava:spark-core:2.9.4'
+
+        compileOnly this.rootProject.libs.miwiklark.get()
+        compileOnly this.rootProject.libs.mongodb.get()
+        compileOnly this.rootProject.libs.gson.get()
+
+        compileOnly this.rootProject.libs.annotations.get()
+        compileOnly this.rootProject.libs.lombok.get()
+        annotationProcessor this.rootProject.libs.lombok.get()
+
+        testCompileOnly this.rootProject.libs.lombok.get()
+        testAnnotationProcessor this.rootProject.libs.lombok.get()
     }
-}
 
-//Automatically download dependencies source code
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = false
+    tasks {
+        build {
+            dependsOn spotlessApply
+        }
     }
-}
 
-tasks.withType(AbstractCopyTask).configureEach {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
+    //Automatically download dependencies source code
+    idea {
+        module {
+            downloadSources = true
+            downloadJavadoc = false
+        }
+    }
 
-java {
-    withSourcesJar()
+    tasks.withType(AbstractCopyTask).configureEach {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    java {
+        withSourcesJar()
+    }
 }

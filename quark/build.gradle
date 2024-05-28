@@ -1,0 +1,7 @@
+dependencies {
+    compileOnly project(':common-profile')
+
+    compileOnly project(':messaging')
+    compileOnly project(':profile')
+    compileOnly project(':common')
+}

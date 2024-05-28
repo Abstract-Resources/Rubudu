@@ -1,0 +1,37 @@
+plugins {
+    alias libs.plugins.shadow
+}
+
+dependencies {
+    implementation this.libs.miwiklark.get()
+
+    implementation project(':messaging')
+    implementation project(':common')
+
+    implementation project(':common-profile')
+    implementation project(':punishments')
+    implementation project(':profile')
+    implementation project(':parties')
+    implementation project(':quark')
+}
+
+tasks {
+    build {
+        dependsOn shadowJar
+    }
+
+    shadowJar {
+        archiveFileName.set("${rootProject.name}-${version}.jar")
+    }
+
+    jar {
+        manifest {
+            attributes["Main-Class"] = "it.bitrule.rubudu.app.App"
+        }
+    }
+
+    compileJava {
+        options.encoding = "UTF-8"
+        options.compilerArgs.add("-Xpkginfo:always")
+    }
+}
