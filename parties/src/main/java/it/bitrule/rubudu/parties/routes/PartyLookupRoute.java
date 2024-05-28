@@ -6,7 +6,6 @@ import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.parties.controller.PartyController;
 import it.bitrule.rubudu.parties.object.Party;
 import lombok.RequiredArgsConstructor;
-import lombok.NonNull;
 import spark.Request;
 import spark.Response;
 import spark.Route;

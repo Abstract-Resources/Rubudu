@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import spark.Spark;
+import spark.routematch.RouteMatch;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -108,6 +109,11 @@ public final class App {
 
         Spark.path("/apiv1/", () -> {
             Spark.get("ping/:id", new PingRoute());
+
+            Spark.get("info", (request, response) -> Spark.routes().stream()
+                    .map(RouteMatch::getMatchUri)
+                    .toList()
+            );
 
             Spark.get("server/:id/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
 

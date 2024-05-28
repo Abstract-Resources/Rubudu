@@ -6,6 +6,7 @@ import it.bitrule.rubudu.app.grant.GrantData;
 import it.bitrule.rubudu.app.group.GroupData;
 import it.bitrule.rubudu.app.quark.routes.grant.GrantsLookupRoute;
 import it.bitrule.rubudu.app.quark.routes.grant.GrantsSaveRoute;
+import it.bitrule.rubudu.app.quark.routes.group.GroupRoutes;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,13 +39,13 @@ public final class GroupController {
 
         System.out.println("Loaded " + this.groups.size() + " group(s)");
 
-        Spark.path("/apiv1/grants/", () -> {
-            Spark.post(":xuid/save", new GrantsSaveRoute());
-            Spark.get(":id/lookup/:type", new GrantsLookupRoute());
-        });
+        Spark.path("/apiv1/", () -> {
+            Spark.post("grants/:xuid/save", new GrantsSaveRoute());
+            Spark.get("grants/:id/lookup/:type", new GrantsLookupRoute());
 
-//        Spark.post("/groups/create", GroupRoutes.POST, new ResponseTransformerImpl());
-//        Spark.get("/groups", GroupRoutes.GET, new ResponseTransformerImpl());
+            Spark.post("groups/create", GroupRoutes.POST);
+            Spark.get("groups", GroupRoutes.GET);
+        });
 
         // api/quark/grants/:xuid/delete = DELETE mean to unload the grants from our cache
         // api/quark/grants/:xuid/save = POST mean to make an update to the grants

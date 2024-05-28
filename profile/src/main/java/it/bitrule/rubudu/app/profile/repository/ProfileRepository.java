@@ -14,11 +14,13 @@ import org.jetbrains.annotations.Nullable;
 import spark.Spark;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("UnstableApiUsage")
 public final class ProfileRepository {
 
     @Getter private final static @NonNull ProfileRepository instance = new ProfileRepository();
@@ -64,7 +66,7 @@ public final class ProfileRepository {
         Spark.path("/apiv1/player", () -> {
             Spark.post("/:xuid/save", new PlayerSaveRoute());
 
-            Spark.get(":id/lookup/:type", new PlayerLookupRoute());
+            Spark.get("/:id/lookup/:type", new PlayerLookupRoute());
         });
     }
 
@@ -181,15 +183,10 @@ public final class ProfileRepository {
     }
 
     /**
-     * Update the profile into the mongodb repository
-     *
-     * @param profileInfo The profile to update
+     * Get the values of the cache
+     * @return The values of the cache
      */
-    public void update(@NonNull ProfileInfo profileInfo) {
-        if (this.profileInfoRepository == null) {
-            throw new IllegalStateException("ProfileInfo repository not loaded");
-        }
-
-        this.profileInfoRepository.save(profileInfo);
+    public @NonNull Collection<ProfileInfo> values() {
+        return this.cache.values();
     }
 }
