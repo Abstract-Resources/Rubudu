@@ -98,10 +98,12 @@ public final class ProfileRepository {
      * @param identifier The identifier of the profile
      */
     public void clearProfile(@NonNull String identifier) {
-        this.cacheXuid.remove(identifier);
-
         ProfileInfo profileInfo = this.cache.remove(identifier);
         if (profileInfo == null) return;
+
+        if (profileInfo.getName() != null) {
+            this.cacheXuid.remove(profileInfo.getName().toLowerCase());
+        }
 
         this.temporaryCache.put(identifier, profileInfo);
     }
@@ -148,7 +150,7 @@ public final class ProfileRepository {
      */
     public @Nullable ProfileInfo getProfileByName(@NonNull String name) {
         return Optional.ofNullable(this.cacheXuid.get(name.toLowerCase()))
-                .map(this::getProfileByName)
+                .map(this::getProfile)
                 .orElse(null);
     }
 
