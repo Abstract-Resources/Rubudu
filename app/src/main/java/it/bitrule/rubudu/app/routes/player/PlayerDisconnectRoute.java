@@ -67,7 +67,7 @@ public final class PlayerDisconnectRoute implements Route {
         if (highestGroupData == null) return new Pong();
 
         String lastKnownServer = globalProfile.getKnownServer();
-        if (lastKnownServer == null) return null;
+        if (lastKnownServer == null) return ResponseTransformerImpl.failedResponse("No known server");
 
         String prefix = highestGroupData.getPrefix();
         if (prefix == null) prefix = "&7";

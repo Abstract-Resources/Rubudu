@@ -105,8 +105,6 @@ public final class App {
         GroupController.getInstance().loadAll();
         PartyController.getInstance().loadAll(publisherRepository);
 
-        Spark.get("/api/v1/ping/:id", new PingRoute());
-
         Spark.path("/apiv1/", () -> {
             Spark.get("ping/:id", new PingRoute());
 
@@ -117,7 +115,7 @@ public final class App {
 
             Spark.get("server/:id/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
 
-            Spark.post("player/:xuid/disconnect", new PlayerDisconnectRoute(publisherRepository));
+            Spark.delete("player/:xuid/disconnect", new PlayerDisconnectRoute(publisherRepository));
             Spark.post("player/:xuid/join/:server", new PlayerJoinRoute(publisherRepository));
         });
 
