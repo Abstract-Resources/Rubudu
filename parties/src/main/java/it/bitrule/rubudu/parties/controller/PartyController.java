@@ -31,7 +31,7 @@ public final class PartyController {
     private final @NonNull Map<String, String> playersParty = new ConcurrentHashMap<>();
 
     public void loadAll(@NonNull PublisherRepository publisherRepository) {
-        Spark.path("/api/v1/parties/", () -> {
+        Spark.path("/apiv1/parties/", () -> {
             // This is the section for Party routes
             Spark.post(":id/transfer/:xuid", new PartyTransferRoute(), new ResponseTransformerImpl());
             Spark.post(":name/accept/:xuid", new PartyAcceptRoute(publisherRepository), new ResponseTransformerImpl());

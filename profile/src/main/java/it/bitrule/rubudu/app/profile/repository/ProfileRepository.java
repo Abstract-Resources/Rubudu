@@ -5,15 +5,15 @@ import com.mongodb.client.model.Filters;
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.miwiklark.common.repository.Repository;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
-import it.bitrule.rubudu.app.profile.routes.PlayerDisconnectRoute;
 import it.bitrule.rubudu.app.profile.routes.PlayerLookupRoute;
-import it.bitrule.rubudu.app.profile.routes.PlayerJoinRoute;
 import it.bitrule.rubudu.app.profile.routes.PlayerSaveRoute;
+import it.bitrule.rubudu.profile.GlobalProfile;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import spark.Spark;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +25,11 @@ public final class ProfileRepository {
 
     private final @NonNull Cache<String, ProfileInfo> temporaryCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
+            .removalListener((RemovalListener<String, ProfileInfo>) notification -> {
+                if (notification.getCause() != RemovalCause.EXPIRED) return;
+
+                this.cacheGlobalProfiles.remove(notification.getKey());
+            })
             .build();
 
     /**
@@ -41,9 +46,9 @@ public final class ProfileRepository {
      */
     private final @NonNull Map<String, String> cacheXuid = new ConcurrentHashMap<>();
     /**
-     * The known servers for the profile
+     * The cache of the global profiles
      */
-    private final @NonNull Map<String, String> knownServer = new ConcurrentHashMap<>();
+    private final @NonNull Map<String, GlobalProfile> cacheGlobalProfiles = new ConcurrentHashMap<>();
 
     public void loadAll() {
         if (this.profileInfoRepository != null) {
@@ -56,9 +61,7 @@ public final class ProfileRepository {
                 "profiles"
         );
 
-        Spark.path("/api/v1/player", () -> {
-            Spark.post("/:xuid/disconnect", new PlayerDisconnectRoute());
-            Spark.post("/:xuid/join/:server_id", new PlayerJoinRoute());
+        Spark.path("/apiv1/player", () -> {
             Spark.post("/:xuid/save", new PlayerSaveRoute());
 
             Spark.get(":id/lookup/:type", new PlayerLookupRoute());
@@ -80,6 +83,11 @@ public final class ProfileRepository {
         }
 
         this.cacheXuid.put(profileInfo.getName().toLowerCase(), profileInfo.getIdentifier());
+
+        GlobalProfile globalProfile = this.cacheGlobalProfiles.get(profileInfo.getIdentifier());
+        if (globalProfile == null) return;
+
+        globalProfile.setLastRefresh(Instant.now());
     }
 
     /**
@@ -97,25 +105,27 @@ public final class ProfileRepository {
     }
 
     /**
-     * Set the known server for the given xuid
+     * Cache a global profile
      *
-     * @param xuid The xuid of the player
-     * @param serverId The server id of the player
+     * @param globalProfile The global profile to cache
      */
-    public void setPlayerKnownServer(@NonNull String xuid, @NonNull String serverId) {
-        this.knownServer.put(xuid, serverId);
+    public void cacheGlobalProfile(@NonNull GlobalProfile globalProfile) {
+        globalProfile.setLastRefresh(Instant.now());
+
+        this.cacheGlobalProfiles.put(globalProfile.getXuid(), globalProfile);
     }
 
     /**
-     * Get the known server for the given xuid
-     * Usually this server is stored when the server is online
-     * The server can change when the player joins a new server
+     * Clear the global profile from the cache
      *
-     * @param xuid The xuid of the player
-     * @return The known server for the given xuid, or null if not found
+     * @param xuid The xuid of the global profile
      */
-    public @Nullable String getPlayerKnownServer(@NonNull String xuid) {
-        return this.knownServer.get(xuid);
+    public void clearGlobalProfile(@NonNull String xuid) {
+        this.cacheGlobalProfiles.remove(xuid);
+    }
+
+    public @NonNull Optional<GlobalProfile> getGlobalProfile(@NonNull String xuid) {
+        return Optional.ofNullable(this.cacheGlobalProfiles.get(xuid));
     }
 
     /**

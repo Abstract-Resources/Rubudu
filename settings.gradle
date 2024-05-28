@@ -1,5 +1,6 @@
 rootProject.name = "Rubudu"
 
+include 'global-profile'
 include 'punishments'
 include 'messaging'
 include 'profile'

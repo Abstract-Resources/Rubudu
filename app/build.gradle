@@ -6,6 +6,7 @@ dependencies {
     implementation project(':messaging')
     implementation project(':common')
 
+    implementation project(':global-profile')
     implementation project(':punishments')
     implementation project(':profile')
     implementation project(':parties')

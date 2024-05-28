@@ -1,4 +1,6 @@
 dependencies {
+    compileOnly project(':global-profile')
+    
     compileOnly project(':messaging')
     compileOnly project(':common')
 }

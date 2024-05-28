@@ -1,10 +1,12 @@
 package it.bitrule.rubudu.quark.routes.grant;
 
+import com.mongodb.client.model.Filters;
+import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.app.profile.object.PlayerState;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
-import it.bitrule.rubudu.quark.controller.QuarkController;
+import it.bitrule.rubudu.profile.GlobalProfile;
 import it.bitrule.rubudu.quark.object.grant.GrantData;
 import it.bitrule.rubudu.quark.object.grant.GrantsResponseData;
 import spark.Request;
@@ -12,10 +14,10 @@ import spark.Response;
 import spark.Route;
 import spark.Spark;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 
-public final class GrantsLoadRoute implements Route {
+public final class GrantsLookupRoute implements Route {
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -57,23 +59,31 @@ public final class GrantsLoadRoute implements Route {
             Spark.halt(502, ResponseTransformerImpl.failedResponse("Internal server error, name is not defined"));
         }
 
-        List<GrantData> grantsData = QuarkController.getInstance().fetchUnsafePlayerGrants(profileInfo.getIdentifier());
-        if (state.equals(PlayerState.ONLINE)) {
-            QuarkController.getInstance().setPlayerGrants(profileInfo.getIdentifier(), grantsData);
+        GlobalProfile globalProfile = ProfileRepository.getInstance().getGlobalProfile(profileInfo.getIdentifier()).orElse(null);
+        if (globalProfile == null) {
+            globalProfile = new GlobalProfile(
+                    profileInfo.getIdentifier(),
+                    profileInfo.getName(),
+                    state,
+                    Miwiklark.getRepository(GrantData.class)
+                            .findMany(Filters.eq("source_xuid", profileInfo.getIdentifier()))
+                            .stream()
+                            .filter(grantData -> !grantData.isExpired())
+                            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll),
+                    new ArrayList<>()
+            );
         }
+
+        if (state.equals(PlayerState.ONLINE)) ProfileRepository.getInstance().cacheGlobalProfile(globalProfile);
 
         return new GrantsResponseData(
                 profileInfo.getIdentifier(),
                 profileInfo.getName(),
-                QuarkController.getInstance().getLastFetchTimestamp(profileInfo.getIdentifier()) != null || state.equals(PlayerState.ONLINE)
+                globalProfile.getLastRefresh() != null || state.equals(PlayerState.ONLINE)
                         ? PlayerState.ONLINE.name()
                         : PlayerState.OFFLINE.name(),
-                grantsData.stream()
-                        .filter(grantData -> !grantData.isExpired())
-                        .toList(),
-                grantsData.stream()
-                        .filter(GrantData::isExpired)
-                        .toList()
+                globalProfile.getActiveGrants(),
+                new ArrayList<>()
         );
     }
 }

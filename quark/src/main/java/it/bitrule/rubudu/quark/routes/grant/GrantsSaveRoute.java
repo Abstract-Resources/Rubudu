@@ -2,17 +2,15 @@ package it.bitrule.rubudu.quark.routes.grant;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.app.profile.object.PlayerState;
+import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
-import it.bitrule.rubudu.quark.controller.QuarkController;
+import it.bitrule.rubudu.profile.GlobalProfile;
 import it.bitrule.rubudu.quark.object.grant.GrantData;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
-
-import java.util.List;
-import java.util.Objects;
 
 public final class GrantsSaveRoute implements Route {
 
@@ -42,22 +40,17 @@ public final class GrantsSaveRoute implements Route {
             Spark.halt(400, ResponseTransformerImpl.failedResponse("Invalid body"));
         }
 
-        List<GrantData> grantsData = state.equals(PlayerState.ONLINE)
-                ? QuarkController.getInstance().getPlayerGrants(grantPostData.getSourceXuid())
-                : QuarkController.getInstance().fetchUnsafePlayerGrants(grantPostData.getSourceXuid());
-        if (grantsData == null) {
-            Spark.halt(404, ResponseTransformerImpl.failedResponse("Grants non loaded after joining the server"));
-        }
-
-        if (state.equals(PlayerState.ONLINE)) {
-            // Remove the old grant if it exists
-            grantsData.removeIf(grantData -> grantData.getIdentifier().equals(grantPostData.getIdentifier()));
-            grantsData.add(grantPostData);
-
-            QuarkController.getInstance().setPlayerGrants(grantPostData.getSourceXuid(), grantsData);
-        }
-
         Miwiklark.getRepository(GrantData.class).save(grantPostData);
+
+        if (state.equals(PlayerState.OFFLINE)) return new Pong();
+
+        GlobalProfile globalProfile = ProfileRepository.getInstance().getGlobalProfile(grantPostData.getSourceXuid()).orElse(null);
+        if (globalProfile == null) {
+            Spark.halt(404, ResponseTransformerImpl.failedResponse("Player not found"));
+        }
+
+        globalProfile.getActiveGrants().removeIf(grantData -> grantData.getIdentifier().equals(grantPostData.getIdentifier()));
+        globalProfile.getActiveGrants().add(grantPostData);
 
         return new Pong();
     }

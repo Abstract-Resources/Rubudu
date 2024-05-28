@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public abstract class CloudPacket {
 
-    public final static int PLAYER_JOINED_NETWORK_PACKET = 1;
+    public final static int PLAYER_JOINED_NETWORK_PACKET = 0;
+    public final static int PLAYER_DISCONNECT_NETWORK_PACKET = 1;
     public final static int PARTY_NETWORK_INVITED_PACKET = 2;
     public final static int PARTY_NETWORK_DISBANDED_PACKET = 3;
     public final static int PARTY_NETWORK_JOINED_PACKET = 4;

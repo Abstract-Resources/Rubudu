@@ -1,11 +1,12 @@
 package it.bitrule.rubudu.quark.routes.group;
 
 import it.bitrule.miwiklark.common.Miwiklark;
+import it.bitrule.rubudu.common.response.Pong;
+import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.quark.controller.GroupController;
+import it.bitrule.rubudu.quark.object.group.GroupData;
+import it.bitrule.rubudu.quark.object.group.GroupPostData;
 import lombok.NonNull;
-import rubudu.controller.GroupController;
-import rubudu.object.Pong;
-import rubudu.object.group.GroupData;
-import rubudu.object.group.GroupPostData;
 import spark.Route;
 import spark.Spark;
 
@@ -16,7 +17,7 @@ public final class GroupRoutes {
     public final static @NonNull Route GET = (request, response) -> GroupController.getInstance().getGroups();
 
     public final static @NonNull Route POST = (request, response) -> {
-        GroupPostData groupPostData = Miwiklark.GSON.fromJson(request.body(), GroupPostData.class);
+        GroupPostData groupPostData = ResponseTransformerImpl.parseJson(request.body(), GroupPostData.class);
         if (groupPostData == null) {
             Spark.halt(400, "Invalid body");
         }

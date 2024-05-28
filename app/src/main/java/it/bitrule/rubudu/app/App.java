@@ -4,6 +4,8 @@ import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.app.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.app.routes.PingRoute;
+import it.bitrule.rubudu.app.routes.player.PlayerDisconnectRoute;
+import it.bitrule.rubudu.app.routes.player.PlayerJoinRoute;
 import it.bitrule.rubudu.app.routes.server.ServerRoutes;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
 import it.bitrule.rubudu.common.utils.JavaUtils;
@@ -11,7 +13,6 @@ import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.messaging.RedisRepository;
 import it.bitrule.rubudu.messaging.connection.RedisConnection;
 import it.bitrule.rubudu.parties.controller.PartyController;
-import it.bitrule.rubudu.quark.controller.QuarkController;
 import it.bitrule.rubudu.quark.controller.GroupController;
 import lombok.Getter;
 import lombok.NonNull;
@@ -100,17 +101,23 @@ public final class App {
         Spark.before("/*", new APIKeyInterceptor());
 
         ProfileRepository.getInstance().loadAll();
-        QuarkController.getInstance().loadAll();
         GroupController.getInstance().loadAll();
         PartyController.getInstance().loadAll(publisherRepository);
 
         Spark.get("/api/v1/ping/:id", new PingRoute());
 
+        Spark.path("/apiv1/", () -> {
+            Spark.get("ping/:id", new PingRoute());
+
+            Spark.get("server/:id/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
+
+            Spark.post("player/:xuid/disconnect", new PlayerDisconnectRoute(publisherRepository));
+            Spark.post("player/:xuid/join/:server", new PlayerJoinRoute(publisherRepository));
+        });
+
         // api/server/:id/update = POST mean to update the server data
         // api/server/:id/players = GET mean to get all the players on the server
         // api/servers = GET mean to get all the servers
-
-        Spark.get("/server/players", ServerRoutes.GET_ALL, new ResponseTransformerImpl());
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Shutting down Rubudu");
@@ -135,7 +142,7 @@ public final class App {
         @Override
         public void run() {
 //            ProfileController.getInstance().tick();
-            QuarkController.getInstance().tick();
+//            QuarkController.getInstance().tick();
         }
     }
 }
