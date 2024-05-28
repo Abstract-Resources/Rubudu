@@ -3,11 +3,15 @@ package it.bitrule.rubudu.parties.routes;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.parties.controller.PartyController;
 import it.bitrule.rubudu.parties.object.Member;
 import it.bitrule.rubudu.parties.object.Party;
 import it.bitrule.rubudu.parties.object.Role;
 import it.bitrule.rubudu.parties.object.response.AcceptResponse;
+import it.bitrule.rubudu.parties.protocol.PartyNetworkJoinedPacket;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -15,7 +19,10 @@ import spark.Spark;
 
 import static it.bitrule.rubudu.parties.object.response.AcceptResponse.*;
 
+@RequiredArgsConstructor
 public final class PartyAcceptRoute implements Route {
+
+    private final @NonNull PublisherRepository publisherRepository;
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -85,10 +92,10 @@ public final class PartyAcceptRoute implements Route {
 
         PartyController.getInstance().cacheMember(selfXuid, party.getId());
 
-//        Rubudu.getPublisherRepository().publish(
-//                PartyNetworkJoinedPacket.create(party.getId(), selfXuid, profileInfo.getName()),
-//                true
-//        );
+        this.publisherRepository.publish(
+                PartyNetworkJoinedPacket.create(party.getId(), selfXuid, profileInfo.getName()),
+                true
+        );
 
         return new AcceptResponse(
                 ownershipInfo.getIdentifier(),

@@ -2,15 +2,22 @@ package it.bitrule.rubudu.parties.routes;
 
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.parties.controller.PartyController;
 import it.bitrule.rubudu.parties.object.Member;
 import it.bitrule.rubudu.parties.object.Party;
+import it.bitrule.rubudu.parties.protocol.PartyNetworkDisbandedPacket;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
 
+@RequiredArgsConstructor
 public final class PartyDeleteRoute implements Route {
+
+    private final @NonNull PublisherRepository publisherRepository;
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -36,7 +43,7 @@ public final class PartyDeleteRoute implements Route {
             PartyController.getInstance().removeMember(member.getXuid());
         }
 
-        Rubudu.getPublisherRepository().publish(
+        this.publisherRepository.publish(
                 PartyNetworkDisbandedPacket.create(party.getId()),
                 true
         );

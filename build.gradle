@@ -33,6 +33,7 @@ subprojects {
 
     dependencies {
         implementation 'org.cloudburstmc.protocol:common:3.0.0.Beta2-SNAPSHOT'
+        implementation 'com.google.guava:guava:latest.release'
         implementation 'com.sparkjava:spark-core:2.9.4'
 
         implementation this.rootProject.libs.miwiklark.get()

@@ -21,9 +21,18 @@ public final class ProfileRepository {
 
     @Getter private final static @NonNull ProfileRepository instance = new ProfileRepository();
 
+    /**
+     * The repository for the profile info
+     */
     private @Nullable Repository<ProfileInfo> profileInfoRepository = null;
 
+    /**
+     * The cache of the profiles
+     */
     private final @NonNull Map<String, ProfileInfo> cache = new ConcurrentHashMap<>();
+    /**
+     * The cache of the xuid of the profiles
+     */
     private final @NonNull Map<String, String> cacheXuid = new ConcurrentHashMap<>();
     /**
      * The known servers for the profile

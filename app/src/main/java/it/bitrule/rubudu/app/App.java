@@ -1,7 +1,6 @@
 package it.bitrule.rubudu.app;
 
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.app.profile.controller.ProfileController;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.app.routes.APIKeyInterceptor;
 import it.bitrule.rubudu.app.routes.PingRoute;
@@ -28,11 +27,6 @@ public final class App {
     @Getter private final static @NonNull App instance = new App();
 
     static @Nullable Timer timer = null;
-
-    /**
-     * The publisher repository
-     */
-    private static @Nullable PublisherRepository publisherRepository = null;
 
     /**
      * This variable is used to check if the Rubudu instance is running
@@ -92,7 +86,7 @@ public final class App {
         RedisConnection redisConnection = new RedisConnection("127.0.0.1", null, 0);
         redisConnection.connect();
 
-        publisherRepository = new PublisherRepository(
+        PublisherRepository publisherRepository = new PublisherRepository(
                 new RedisRepository(redisConnection),
                 "rubudu"
         );
@@ -108,7 +102,7 @@ public final class App {
         ProfileRepository.getInstance().loadAll();
         GrantsController.getInstance().loadAll();
         GroupController.getInstance().loadAll();
-        PartyController.getInstance().loadAll();
+        PartyController.getInstance().loadAll(publisherRepository);
 
         Spark.get("/api/v1/ping/:id", new PingRoute());
 
@@ -135,14 +129,6 @@ public final class App {
         }));
 
         this.running = true;
-    }
-
-    public static @NonNull PublisherRepository getPublisherRepository() {
-        if (publisherRepository == null) {
-            throw new IllegalStateException("PublisherRepository not initialized");
-        }
-
-        return publisherRepository;
     }
 
     private static class TimerTaskImpl extends TimerTask {

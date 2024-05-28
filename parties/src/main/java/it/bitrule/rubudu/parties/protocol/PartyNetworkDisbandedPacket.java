@@ -1,5 +1,7 @@
-package it.bitrule.rubudu.messaging.protocol;
+package it.bitrule.rubudu.parties.protocol;
 
+import it.bitrule.rubudu.messaging.protocol.CloudByteStream;
+import it.bitrule.rubudu.messaging.protocol.CloudPacket;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 

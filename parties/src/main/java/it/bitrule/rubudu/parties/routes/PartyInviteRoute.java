@@ -3,9 +3,13 @@ package it.bitrule.rubudu.parties.routes;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
+import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.parties.controller.PartyController;
 import it.bitrule.rubudu.parties.object.Party;
 import it.bitrule.rubudu.parties.object.response.InviteResponse;
+import it.bitrule.rubudu.parties.protocol.PartyNetworkInvitedPacket;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -13,7 +17,10 @@ import spark.Spark;
 
 import static it.bitrule.rubudu.parties.object.response.InviteResponse.*;
 
+@RequiredArgsConstructor
 public final class PartyInviteRoute implements Route {
+
+    private final @NonNull PublisherRepository publisherRepository;
 
     /**
      * Invoked when a request is made on this route's corresponding path e.g. '/hello'
@@ -51,10 +58,10 @@ public final class PartyInviteRoute implements Route {
             return new InviteResponse(profileInfo.getIdentifier(), playerName, State.ALREADY_IN_PARTY);
         }
 
-//        Rubudu.getPublisherRepository().publish(
-//                PartyNetworkInvitedPacket.create(party.getId(), playerName, profileInfo.getName()),
-//                true
-//        );
+        this.publisherRepository.publish(
+                PartyNetworkInvitedPacket.create(party.getId(), playerName, profileInfo.getName()),
+                true
+        );
 
         return new InviteResponse(profileInfo.getIdentifier(), playerName, State.SUCCESS);
     }
