@@ -1,6 +1,7 @@
-package it.bitrule.rubudu.quark.object.grant;
+package it.bitrule.rubudu.app.quark.object.grant;
 
 import com.google.gson.annotations.SerializedName;
+import it.bitrule.rubudu.app.grant.GrantData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;

@@ -1,12 +1,12 @@
-package it.bitrule.rubudu.quark.routes.grant;
+package it.bitrule.rubudu.app.quark.routes.grant;
 
 import it.bitrule.miwiklark.common.Miwiklark;
-import it.bitrule.rubudu.app.profile.object.PlayerState;
+import it.bitrule.rubudu.app.profile.PlayerState;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
-import it.bitrule.rubudu.profile.GlobalProfile;
-import it.bitrule.rubudu.quark.object.grant.GrantData;
+import it.bitrule.rubudu.app.profile.GlobalProfile;
+import it.bitrule.rubudu.app.grant.GrantData;
 import spark.Request;
 import spark.Response;
 import spark.Route;

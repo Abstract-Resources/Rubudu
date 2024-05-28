@@ -33,11 +33,13 @@ subprojects {
 
     dependencies {
         implementation 'org.cloudburstmc.protocol:common:3.0.0.Beta2-SNAPSHOT'
-        implementation 'com.google.guava:guava:latest.release'
+        implementation ('com.google.guava:guava:11.0.2') {
+            exclude group: 'com.google.collections', module: 'google-collections'
+        }
         implementation 'com.sparkjava:spark-core:2.9.4'
 
-        implementation this.rootProject.libs.miwiklark.get()
-        implementation this.rootProject.libs.mongodb.get()
+        compileOnly this.rootProject.libs.miwiklark.get()
+        compileOnly this.rootProject.libs.mongodb.get()
         compileOnly this.rootProject.libs.gson.get()
 
         compileOnly this.rootProject.libs.annotations.get()

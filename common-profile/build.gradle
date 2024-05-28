@@ -1,6 +1,4 @@
 dependencies {
     compileOnly project(':messaging')
-    compileOnly project(':profile')
     compileOnly project(':common')
-    compileOnly project(':quark')
 }

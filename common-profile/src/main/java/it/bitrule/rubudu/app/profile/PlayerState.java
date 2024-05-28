@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.app.profile.object;
+package it.bitrule.rubudu.app.profile;
 
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;

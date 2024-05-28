@@ -1,6 +1,6 @@
 package it.bitrule.rubudu.app.profile.routes;
 
-import it.bitrule.rubudu.app.profile.object.PlayerState;
+import it.bitrule.rubudu.app.profile.PlayerState;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.object.ProfileResponseData;
 import it.bitrule.rubudu.app.profile.repository.ProfileRepository;

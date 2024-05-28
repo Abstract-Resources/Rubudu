@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.quark.object.group;
+package it.bitrule.rubudu.app.quark.object.group;
 
 import lombok.Getter;
 import lombok.NonNull;

@@ -1,6 +1,7 @@
 package it.bitrule.rubudu.app.profile.object;
 
 import com.google.gson.annotations.SerializedName;
+import it.bitrule.rubudu.app.profile.PlayerState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;

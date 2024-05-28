@@ -3,10 +3,12 @@ plugins {
 }
 
 dependencies {
+    implementation this.libs.miwiklark.get()
+
     implementation project(':messaging')
     implementation project(':common')
 
-    implementation project(':global-profile')
+    implementation project(':common-profile')
     implementation project(':punishments')
     implementation project(':profile')
     implementation project(':parties')

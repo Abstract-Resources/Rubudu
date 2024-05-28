@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.quark.object.group;
+package it.bitrule.rubudu.app.group;
 
 import com.google.gson.annotations.SerializedName;
 import it.bitrule.miwiklark.common.repository.model.IModel;

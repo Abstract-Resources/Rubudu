@@ -1,4 +1,4 @@
-package it.bitrule.rubudu.profile;
+package it.bitrule.rubudu.app.profile;
 
 import lombok.Data;
 import lombok.NonNull;

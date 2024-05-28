@@ -1,7 +1,6 @@
-package it.bitrule.rubudu.profile;
+package it.bitrule.rubudu.app.profile;
 
-import it.bitrule.rubudu.app.profile.object.PlayerState;
-import it.bitrule.rubudu.quark.object.grant.GrantData;
+import it.bitrule.rubudu.app.grant.GrantData;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

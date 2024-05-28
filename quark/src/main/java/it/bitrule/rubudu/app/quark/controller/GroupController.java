@@ -1,11 +1,11 @@
-package it.bitrule.rubudu.quark.controller;
+package it.bitrule.rubudu.app.quark.controller;
 
 import it.bitrule.miwiklark.common.Miwiklark;
 import it.bitrule.miwiklark.common.repository.Repository;
-import it.bitrule.rubudu.quark.object.grant.GrantData;
-import it.bitrule.rubudu.quark.object.group.GroupData;
-import it.bitrule.rubudu.quark.routes.grant.GrantsLookupRoute;
-import it.bitrule.rubudu.quark.routes.grant.GrantsSaveRoute;
+import it.bitrule.rubudu.app.grant.GrantData;
+import it.bitrule.rubudu.app.group.GroupData;
+import it.bitrule.rubudu.app.quark.routes.grant.GrantsLookupRoute;
+import it.bitrule.rubudu.app.quark.routes.grant.GrantsSaveRoute;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;

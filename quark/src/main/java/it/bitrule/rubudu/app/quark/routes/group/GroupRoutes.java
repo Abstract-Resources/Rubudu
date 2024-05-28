@@ -1,11 +1,11 @@
-package it.bitrule.rubudu.quark.routes.group;
+package it.bitrule.rubudu.app.quark.routes.group;
 
 import it.bitrule.miwiklark.common.Miwiklark;
+import it.bitrule.rubudu.app.quark.controller.GroupController;
 import it.bitrule.rubudu.common.response.Pong;
 import it.bitrule.rubudu.common.response.ResponseTransformerImpl;
-import it.bitrule.rubudu.quark.controller.GroupController;
-import it.bitrule.rubudu.quark.object.group.GroupData;
-import it.bitrule.rubudu.quark.object.group.GroupPostData;
+import it.bitrule.rubudu.app.group.GroupData;
+import it.bitrule.rubudu.app.quark.object.group.GroupPostData;
 import lombok.NonNull;
 import spark.Route;
 import spark.Spark;

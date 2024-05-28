@@ -13,7 +13,7 @@ import it.bitrule.rubudu.messaging.PublisherRepository;
 import it.bitrule.rubudu.messaging.RedisRepository;
 import it.bitrule.rubudu.messaging.connection.RedisConnection;
 import it.bitrule.rubudu.parties.controller.PartyController;
-import it.bitrule.rubudu.quark.controller.GroupController;
+import it.bitrule.rubudu.app.quark.controller.GroupController;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;

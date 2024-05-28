@@ -7,7 +7,7 @@ import it.bitrule.miwiklark.common.repository.Repository;
 import it.bitrule.rubudu.app.profile.object.ProfileInfo;
 import it.bitrule.rubudu.app.profile.routes.PlayerLookupRoute;
 import it.bitrule.rubudu.app.profile.routes.PlayerSaveRoute;
-import it.bitrule.rubudu.profile.GlobalProfile;
+import it.bitrule.rubudu.app.profile.GlobalProfile;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
